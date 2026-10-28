@@ -95,6 +95,7 @@ GenUI确认模板（必须原样）：
 - 接口见`interfaces.js`（TemplateProvider）。`LLMClient`/`ImageProvider` **尚未实现**（规划项），新增平台只需实现 `TemplateProvider`。
 
 ## 跨页一致性与衔接（消费哲学层）
+- **哲学层指针**：唯一权威源 = `~/.config/opencode/design-spec/references/ui-design-philosophy.md`（反面案例库 `design-spec/references/ui-design-anti-patterns.md`）；本文件只消费、不复制其条款。
 - 骨架继承：所有页面共用外壳（移动端 `mobile-template/layout-shell.eta` + `layout-page.eta`；桌面端 `desktop-template/layout.eta`）；页内 `header`/`main`/`footer` 槽位高度与 gutter 只在模板定一次，页面插槽不得改结构。
 - 跨页不变量：品牌标识、导航、页脚、主 CTA 同位同尺寸同顺序；导航当前态同位置同视觉。
 - 衔接：外壳内切页走直切或交叉淡化；不引入路由库；不减失返回路径。
