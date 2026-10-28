@@ -1,5 +1,5 @@
 <div class="min-h-full bg-neutral-50 pb-28">
-  <header class="sticky top-0 z-10 px-5 pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
+  <header class="sticky top-0 z-10 px-page pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
     <div class="flex items-center justify-between">
       <div>
         <p class="eyebrow text-brand-600"><%= it.meta.productName %></p>
@@ -14,7 +14,7 @@
     </div>
   </header>
 
-  <main class="px-4 pt-4 space-y-6">
+  <main class="px-page pt-4 space-y-6">
     <% const _imgs = (it.images || []); const _hero = _imgs[0]; %>
     <% if (_hero) { %>
     <a href="<%= it.link('detail','list','home') %>" class="group relative block overflow-hidden rounded-3xl shadow-lg shadow-neutral-900/10" aria-label="<%= it.copy.home.hero.ariaLabel %>">
@@ -51,7 +51,7 @@
         <h3 class="section-title"><%= it.copy.home.recommend.title %></h3>
         <a href="<%= it.link('discover','home') %>" class="inline-flex items-center gap-0.5 text-xs font-medium text-brand-600"><%= it.copy.home.recommend.more %> <i data-lucide="chevron-right" class="text-xs"></i></a>
       </div>
-      <div class="flex gap-3 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
+      <div class="flex gap-3 overflow-x-auto scrollbar-hide -mx-page px-page pb-1">
         <% for (let _i = 0; _i < _recs.length; _i++) { const _r = _recs[_i]; %>
           <a href="<%= it.link('detail','list','home') %>" class="w-40 shrink-0 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200/60 active:scale-95 transition">
             <img src="<%= _r %>" alt="<%= it.copy.home.recommend.imgAlt %>" class="h-28 w-full object-cover" loading="lazy" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />

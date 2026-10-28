@@ -7,6 +7,7 @@ import { collectDeadLinks } from '../utils/check-links.js';
 import { checkInlineTailwindConfig } from '../utils/inspect-tailwind-inline.js';
 import { assertCopyDomain } from '../utils/copy-domain.js';
 import { stripNoise } from '../utils/copy-golden.js';
+import { measureConsistency } from '../utils/consistency.js';
 
 const WORKSPACE = process.env.WORKSPACE || process.cwd();
 const outDir = resolve(WORKSPACE, 'prototype');
@@ -141,7 +142,74 @@ for (const f of files) {
 }
 
 const deadLinkFail = ENFORCE_DEAD_LINKS ? deadLinks.length : 0;
-const passed = chineseFail === 0 && imgFail === 0 && semanticFail === 0 && tailwindFail === 0 && deadLinkFail === 0 && copyFail === 0 && layoutFail === 0 && creaseFail === 0 && malformedFail === 0;
+
+// ---- 一致性闸门（布局槽位）----
+// WHY 必须在这里而不只靠 golden：golden 三维比的是**单个元素的 class 字符串**，
+// 表达不了「header 与 main 的左右内边距必须相等」这类**跨元素约束**。B1 之前
+// 8/8 页恒定出现「内容比标题偏左 4px」，三维门禁全绿却无人发现，就是这条缺口。
+// 口径与 measure-consistency.js 共用 utils/consistency.js（同一实现，避免两套阈值漂移）。
+// button 档暂为 advisory：B2（按钮档收敛）未做，硬接会立刻红（当前移动 5 种 / 桌面 6 种）。
+const consistency = await measureConsistency(outDir);
+const cs = consistency.summary;
+let consistencyFail = 0;
+let controlKindsWarn = false;
+if (cs) {
+  const slotLabels = [
+    ['headerLeft', 'header 左内边距'], ['headerRight', 'header 右内边距'],
+    ['mainLeft', 'main 左内边距'], ['mainRight', 'main 右内边距'],
+    ['tabbarLeft', 'tabbar 左内边距'], ['tabbarRight', 'tabbar 右内边距'],
+  ];
+  if (cs.gutterDelta.max != null && cs.gutterDelta.max !== 0) {
+    consistencyFail++;
+    log.verify.error(`gutter 不一致：header 与 main 的**左**内边距最大差 ${cs.gutterDelta.max}px（取值 ${JSON.stringify(cs.gutterDelta.values)}）—— 两者须同一刻度（px-page）`);
+  }
+  if (cs.gutterDelta.rightMax != null && cs.gutterDelta.rightMax !== 0) {
+    consistencyFail++;
+    log.verify.error(`gutter 不一致：header 与 main 的**右**内边距最大差 ${cs.gutterDelta.rightMax}px（取值 ${JSON.stringify(cs.gutterDelta.rightValues)}）—— 右侧同样须同一刻度`);
+  }
+  // 全站只有外壳（无 header/main）⇒ 一致性无从判定；不判红就成了「只剩 index 也能过」的假绿
+  if (cs.files > 0 && cs.shellOnly === cs.files) {
+    consistencyFail++;
+    log.verify.error(`全部 ${cs.files} 个 HTML 均为外壳/重定向（无 header/main），一致性闸门无从判定 —— 检查是否静默丢页`);
+  }
+  for (const [key, label] of slotLabels) {
+    const vals = cs.slotDrift[key] || [];
+    // 唯一值 >1 ⇒ 跨槽位漂移（如 header 20 / main 16 / tabbar 24）；空数组=该槽位不存在（桌面无 tabbar）
+    if (vals.length > 1) {
+      consistencyFail++;
+      log.verify.error(`槽位漂移：${label} 出现 ${vals.length} 个值 ${JSON.stringify(vals)} —— 全站槽位须单值`);
+    }
+    // 单值也可能整体漂移（模板统一回退 px-5）：须等于 page 令牌，否则「统一但不正确」照样过闸。
+    // 仅在「有 header 且 main」的真实产物上执行：手写样本/片段页（只有 <main>）不是本模板形态，
+    // 按 page 令牌判会误红（selfcheck 的未闭合标签正例就是这种单页样本）。
+    const hasSlots = (cs.slotDrift.headerLeft || []).length > 0 && (cs.slotDrift.mainLeft || []).length > 0;
+    if (hasSlots && consistency.pagePx != null) {
+      for (const v of vals) {
+        if (v !== consistency.pagePx) {
+          consistencyFail++;
+          log.verify.error(`槽位未用 page 刻度：${label} = ${v}px ≠ ${consistency.pagePx}px（应写 px-page）`);
+        }
+      }
+    }
+  }
+  if (cs.negMargin.mismatch.length) {
+    consistencyFail += cs.negMargin.mismatch.length;
+    cs.negMargin.mismatch.slice(0, 5).forEach((d) => log.verify.error(`负 margin 与内边距不配对：${d}`));
+  }
+  if (cs.negMargin.orphan.length) {
+    // 孤儿可能是「-mx-N + p-N」的合法写法，故不判死；但不配对即意味着左右不对称，必须可见
+    cs.negMargin.orphan.slice(0, 5).forEach((d) => log.verify.warn(`负 margin 无配对水平内边距（advisory）：${d}`));
+  }
+  if (cs.unknownClasses.length) {
+    log.verify.warn(`未识别刻度 ${cs.unknownClasses.length} 个 ${JSON.stringify(cs.unknownClasses.slice(0, 8))}：度量口径不覆盖，一致性数值可能偏低（advisory）`);
+  }
+  if (cs.controlKinds.button.length > 3) {
+    controlKindsWarn = true;
+    log.verify.warn(`控件渲染高度档 ${cs.controlKinds.button.length} 种 ${JSON.stringify(cs.controlKinds.button)}（目标 ≤3，B2 未做 ⇒ advisory）`);
+  }
+}
+
+const passed = chineseFail === 0 && imgFail === 0 && semanticFail === 0 && tailwindFail === 0 && deadLinkFail === 0 && copyFail === 0 && layoutFail === 0 && creaseFail === 0 && malformedFail === 0 && consistencyFail === 0;
 console.log(JSON.stringify({
   files: files.length,
   chineseFail,
@@ -159,6 +227,21 @@ console.log(JSON.stringify({
   deadLinks: deadLinks.length,
   deadLinksEnforced: ENFORCE_DEAD_LINKS,
   unresolvedLinks,
+  consistencyFail,
+  consistency: cs ? {
+    platform: consistency.platform,
+    pagePx: consistency.pagePx,
+    gutterDeltaMax: cs.gutterDelta.max,
+    gutterDeltaRightMax: cs.gutterDelta.rightMax,
+    slotDrift: cs.slotDrift,
+    negMarginMismatch: cs.negMargin.mismatch.length,
+    negMarginOrphan: cs.negMargin.orphan.length,
+    buttonKinds: cs.controlKinds.button.length,
+    buttonKindsList: cs.controlKinds.button,
+    buttonKindsAdvisory: controlKindsWarn,
+    transitionPages: cs.transitionPages,
+    unknownClasses: cs.unknownClasses.length,
+  } : null,
   passed,
 }, null, 2));
 process.exit(passed ? 0 : 2);

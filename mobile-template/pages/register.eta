@@ -1,6 +1,6 @@
 <div class="min-h-full bg-neutral-50 pb-10">
   <% const _rg = it.copy.register; %>
-  <header class="px-5 pt-14 pb-6">
+  <header class="px-page pt-14 pb-6">
     <div class="flex items-center justify-between">
       <%~ it.brandMark %>
       <a href="<%= it.link(_rg.skip.target, _rg.skip.fallback) %>" class="grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-600 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="<%= _rg.skip.label %>"><i data-lucide="x" class="text-lg"></i></a>
@@ -8,7 +8,7 @@
     <h2 class="page-title mt-6 text-neutral-900"><%= _rg.title %></h2>
     <p class="mt-1.5 text-sm text-neutral-500"><%= _rg.subtitle %></p>
   </header>
-  <main class="px-4 space-y-4">
+  <main class="px-page space-y-4">
     <section class="card p-5" aria-label="<%= _rg.cardAriaLabel %>">
       <div class="space-y-4">
         <% for (const _f of (_rg.fields || [])) { %>

@@ -1,10 +1,10 @@
 <div class="min-h-full bg-neutral-50 pb-28">
-  <header class="sticky top-0 z-10 px-5 pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
+  <header class="sticky top-0 z-10 px-page pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
     <p class="eyebrow text-brand-600"><%= it.meta.productName %></p>
     <h2 class="page-title mt-1 text-neutral-900"><%= it.copy.profile.title %></h2>
     <a href="<%= it.link('settings','home') %>" class="absolute right-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="<%= it.copy.a11y.settings %>"><i data-lucide="settings" class="text-lg"></i></a>
   </header>
-  <main class="px-4 pt-4 space-y-4">
+  <main class="px-page pt-4 space-y-4">
     <section class="card p-4" aria-label="<%= it.copy.profile.ariaLabel.info %>">
       <div class="flex items-center gap-4">
         <img src="<%= (it.images||[])[0] || it.placeholder %>" alt="<%= it.copy.profile.avatarAlt %>" class="h-20 w-20 rounded-full object-cover ring-2 ring-white shadow-md" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />

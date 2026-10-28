@@ -1,15 +1,15 @@
 <div class="min-h-full bg-neutral-50 pb-28">
-  <header class="sticky top-0 z-10 px-5 pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
+  <header class="sticky top-0 z-10 px-page pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
     <p class="eyebrow text-brand-600"><%= it.meta.productName %></p>
     <h2 class="page-title mt-1 text-neutral-900"><%= it.copy.orders.title %></h2>
-    <div class="mt-3 flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
+    <div class="mt-3 flex gap-2 overflow-x-auto scrollbar-hide -mx-page px-page pb-1">
       <% const _status = it.copy.orders.tabs || []; %>
       <% for (const _s of _status) { %>
         <button aria-pressed="<%= _s.active ? 'true' : 'false' %>" class="shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-medium transition <%= _s.active ? 'bg-brand-600 text-white shadow-sm' : 'bg-white text-neutral-600 ring-1 ring-neutral-200/70' %>"><%= _s.label %></button>
       <% } %>
     </div>
   </header>
-  <main class="px-4 pt-4 space-y-4">
+  <main class="px-page pt-4 space-y-4">
     <section aria-label="<%= it.copy.orders.ariaLabel.list %>" class="space-y-3">
       <% const _orders = (it.copy.orders.cards && it.copy.orders.cards.rows) || []; %>
       <% for (let _oi = 0; _oi < _orders.length; _oi++) { const _o = _orders[_oi]; %>

@@ -232,7 +232,8 @@
         "12": "3rem",
         "16": "4rem",
         "20": "5rem",
-        "24": "6rem"
+        "24": "6rem",
+        "page": "1rem"
       },
       "borderRadius": {
         "none": "0",
@@ -683,11 +684,11 @@
   </style></head>
 <body class="bg-neutral-50 text-neutral-900 antialiased" style="min-height:100vh">
 <div class="min-h-full bg-neutral-50 pb-28">
-  <header class="sticky top-0 z-10 px-5 pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
+  <header class="sticky top-0 z-10 px-page pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
     <a href="home.html" class="absolute left-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="返回"><i data-lucide="chevron-left" class="text-lg"></i></a>
     <h2 class="nav-title text-center">发布闲置</h2>
   </header>
-  <main class="px-4 pt-4 pb-24 space-y-4">
+  <main class="px-page pt-4 pb-24 space-y-4">
         <section class="card p-4 space-y-4" aria-label="上传图片">
       <h3 class="section-title">商品图片（最多 9 张）</h3>
       <div class="grid grid-cols-3 gap-3" id="image-grid">
@@ -732,7 +733,7 @@
                                                                                                           <select class="input" aria-label="发货地"><option>北京市朝阳区</option><option>上海市浦东新区</option><option>广州市天河区</option><option>深圳市南山区</option></select>
                                                       </div>                  </div>
       </section>
-        <button class="btn btn-primary w-full py-3.5 active:scale-95">发布商品</button>
+        <button class="btn btn-primary w-full py-3 active:scale-95">发布商品</button>
   </main>
 </div></body>
 </html>

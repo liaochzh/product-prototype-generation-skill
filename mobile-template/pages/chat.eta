@@ -1,5 +1,5 @@
 <div class="min-h-full bg-neutral-50">
-  <header class="sticky top-0 z-10 px-5 pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
+  <header class="sticky top-0 z-10 px-page pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
     <a href="<%= it.link('home','list','discover','profile') %>" class="absolute left-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="<%= it.copy.a11y.back %>"><i data-lucide="chevron-left" class="text-lg"></i></a>
     <div class="flex flex-col items-center">
       <span class="nav-title"><%= it.copy.chat.peerName %></span>
@@ -7,7 +7,7 @@
     </div>
     <button class="absolute right-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="<%= it.copy.a11y.more %>"><i data-lucide="ellipsis" class="text-lg"></i></button>
   </header>
-  <main class="px-4 pt-4 pb-20 space-y-4" id="chat-list" role="log" aria-live="polite">
+  <main class="px-page pt-4 pb-20 space-y-4" id="chat-list" role="log" aria-live="polite">
     <% const _msgs = (it.copy.chat.messages || []).map((m) => ({ in: m.side !== 'out', text: m.text, time: m.time })); %>
     <% for (let _mi = 0; _mi < _msgs.length; _mi++) { const _m = _msgs[_mi]; %>
       <div class="flex <%= _m.in ? '' : 'flex-row-reverse' %> gap-2">

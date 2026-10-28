@@ -232,7 +232,8 @@
         "12": "3rem",
         "16": "4rem",
         "20": "5rem",
-        "24": "6rem"
+        "24": "6rem",
+        "page": "1rem"
       },
       "borderRadius": {
         "none": "0",
@@ -683,7 +684,7 @@
   </style></head>
 <body class="bg-neutral-50 text-neutral-900 antialiased" style="min-height:100vh">
 <div class="min-h-full bg-neutral-50 pb-28">
-  <header class="sticky top-0 z-10 px-5 pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
+  <header class="sticky top-0 z-10 px-page pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
     <div class="flex items-center justify-between">
       <div>
         <p class="eyebrow text-brand-600">云集商城</p>
@@ -698,7 +699,7 @@
     </div>
   </header>
 
-  <main class="px-4 pt-4 space-y-6">
+  <main class="px-page pt-4 space-y-6">
             <a href="detail.html" class="group relative block overflow-hidden rounded-3xl shadow-lg shadow-neutral-900/10" aria-label="精选推荐">
       <img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&amp;fit=crop&amp;q=80&amp;crop=entropy&amp;w=800&amp;h=600" alt="精选" class="h-60 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml,%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22300%22%20viewBox%3D%220%200%20400%20300%22%3E%0A%20%20%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22hsl(158%2C%2064%25%2C%2082%25)%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2260%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.15%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2240%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.25%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2220%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.4%22%2F%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2265%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2218%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.7%22%3Eplaceholder%3C%2Ftext%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2272%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2212%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.5%22%3E%E5%9B%BE%E7%89%87%E5%8D%A0%E4%BD%8D%3C%2Ftext%3E%0A%3C%2Fsvg%3E%0A'" />
       <div class="absolute inset-0 hero-overlay"></div>
@@ -739,7 +740,7 @@
         <h3 class="section-title">为你推荐</h3>
         <a href="discover.html" class="inline-flex items-center gap-0.5 text-xs font-medium text-brand-600">更多 <i data-lucide="chevron-right" class="text-xs"></i></a>
       </div>
-      <div class="flex gap-3 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
+      <div class="flex gap-3 overflow-x-auto scrollbar-hide -mx-page px-page pb-1">
                   <a href="detail.html" class="w-40 shrink-0 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200/60 active:scale-95 transition">
             <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&amp;fit=crop&amp;q=80&amp;crop=center&amp;w=800&amp;h=600" alt="推荐" class="h-28 w-full object-cover" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml,%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22300%22%20viewBox%3D%220%200%20400%20300%22%3E%0A%20%20%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22hsl(158%2C%2064%25%2C%2082%25)%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2260%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.15%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2240%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.25%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2220%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.4%22%2F%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2265%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2218%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.7%22%3Eplaceholder%3C%2Ftext%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2272%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2212%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.5%22%3E%E5%9B%BE%E7%89%87%E5%8D%A0%E4%BD%8D%3C%2Ftext%3E%0A%3C%2Fsvg%3E%0A'" />
             <div class="p-3">
@@ -768,5 +769,5 @@
     </section>
       </main>
 
-</div><nav class="fixed bottom-4 inset-x-6 z-20 bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl rounded-3xl px-6 py-3 flex justify-between" aria-label="底部导航"><a href="home.html" aria-current="page" class="flex flex-col items-center gap-1 text-xs font-medium text-brand-600 active:scale-95 transition"><i data-lucide="house" class="text-xl"></i>首页</a><a href="discover.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="compass" class="text-xl"></i>发现</a><a href="publish.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="circle-plus" class="text-xl"></i>发布</a><a href="chat.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="message-circle" class="text-xl"></i>消息</a><a href="profile.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="user-round" class="text-xl"></i>我的</a></nav></body>
+</div><nav class="fixed bottom-4 inset-x-page z-20 bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl rounded-3xl px-page py-3 flex justify-between" aria-label="底部导航"><a href="home.html" aria-current="page" class="flex flex-col items-center gap-1 text-xs font-medium text-brand-600 active:scale-95 transition"><i data-lucide="house" class="text-xl"></i>首页</a><a href="discover.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="compass" class="text-xl"></i>发现</a><a href="publish.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="circle-plus" class="text-xl"></i>发布</a><a href="chat.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="message-circle" class="text-xl"></i>消息</a><a href="profile.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="user-round" class="text-xl"></i>我的</a></nav></body>
 </html>

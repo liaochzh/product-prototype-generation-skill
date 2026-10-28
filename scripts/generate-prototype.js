@@ -286,7 +286,7 @@ async function buildOnce() {
       const on = p === name;
       return `<a href="${linkFor(p)(name)}"${on ? ' aria-current="page"' : ''} class="flex flex-col items-center gap-1 text-xs font-medium ${on ? 'text-brand-600' : 'text-neutral-500'} active:scale-95 transition"><i data-lucide="${icon}" class="text-xl"></i>${escapeHtml(label)}</a>`;
     }).join('');
-    return items ? `<nav class="fixed bottom-4 inset-x-6 z-20 bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl rounded-3xl px-6 py-3 flex justify-between" aria-label="底部导航">${items}</nav>` : '';
+    return items ? `<nav class="fixed bottom-4 inset-x-page z-20 bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl rounded-3xl px-page py-3 flex justify-between" aria-label="底部导航">${items}</nav>` : '';
   };
 
   const baseCtx = (p, extra = {}) => ({ meta, platform, page: p, title: copyNav(p), head, nav, scheme, signature, brandMark, esc: escapeHtml, link: linkFor(p), copy: copyPack, badgeTone: badgeToneClass, tone: badgeToneClass, device, ...extra });

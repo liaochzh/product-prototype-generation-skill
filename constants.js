@@ -127,6 +127,14 @@ export const DESIGN_TOKENS = {
     24: '6rem',
   },
 
+  // 布局令牌：单一 gutter 源。模板/生成器一律用 page 刻度（→ px-page/-mx-page/inset-x-page），
+  // 不得再手写 px-4/px-5/px-6 —— 三个值并存正是「内容整体相对标题偏左」的根因。
+  // 值必须是 rem 字符串：tailwind-config 直接注入 spacing，裸数字会变成 "16rem"。
+  layout: {
+    gutter: { mobile: '1rem', desktop: '2rem' },
+    containerMax: { desktop: '80rem' },
+  },
+
   // 设备尺寸规范已迁出为顶层 DEVICES 表（原 iphone 单机型常量定义即死、全仓零消费，
   // 外壳布局硬编码，导致预览宽度 404px 不对应任何真实设备）。见文件末尾「设备与布局档位」。
 
@@ -323,7 +331,7 @@ export const THEME_PALETTE = {
   ...DESIGN_TOKENS.themePalette,
 };
 
-export const { breakpoints, radius, shadows, blur, fontFamily, fontSize, spacing, brandColors, themePalette, fontStacks, semanticColors, unsplashFallback, pageKeywords, transition, zIndex } = DESIGN_TOKENS;
+export const { breakpoints, radius, shadows, blur, fontFamily, fontSize, spacing, layout, brandColors, themePalette, fontStacks, semanticColors, unsplashFallback, pageKeywords, transition, zIndex } = DESIGN_TOKENS;
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * 语义排版角色（role → fontSize token）

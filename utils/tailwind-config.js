@@ -6,7 +6,7 @@ import { DESIGN_TOKENS, semanticColors, TYPE_ROLES } from '../constants.js';
 import { resolvePrimaryHsl } from './color-scheme.js';
 import { log } from './logger.js';
 
-const { breakpoints, radius, shadows, blur, fontFamily, fontSize, spacing, transition, zIndex } = DESIGN_TOKENS;
+const { breakpoints, radius, shadows, blur, fontFamily, fontSize, spacing, layout, transition, zIndex } = DESIGN_TOKENS;
 
 /**
  * 生成完整的 Tailwind 配置对象
@@ -78,8 +78,8 @@ export function generateTailwindConfig(prdMeta, platform, { theme = null } = {})
           loose: '2',
         },
 
-        // 间距
-        spacing,
+        // 间距（page = 全站唯一 gutter 刻度，供 px-page/-mx-page/inset-x-page 消费）
+        spacing: { ...spacing, page: layout.gutter[platform] },
 
         // 圆角
         borderRadius: radius,

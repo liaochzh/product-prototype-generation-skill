@@ -109,7 +109,7 @@ App 记录项 5 条（**记录项**，非硬禁令，交付时自检回填）与
 ## 质量自检
 
 - `verify-prototype.js`：中文占比、Lorem/占位图、viewport、语义化、**死链**、未解析站内导航、**内联 Tailwind 配置可执行性**、**设备几何一致性**（`layoutFail`/`creaseFail` 计入 `passed`）；`generation-report.json` 随产物输出（含 `device`、`capabilities`、`skippedPages`（无模板而跳过的页，恒存在）、`truncatedPages`（超 10 页上限被截断的页，恒存在）、`unknownPages`（页面清单里未登记、已忽略的页名，恒存在），以及文档导入三字段 `prdSource`（`prd`/`doc`）、`assumptions`、`prdWarnings`）。
-- `selfcheck.js`：全链路回归（50 个场景块）+ 多 fixture golden 三维零回归。**改动生成链路、模板或词典后必须跑**。
+- `selfcheck.js`：全链路回归（51 个场景块）+ 多 fixture golden 三维零回归。**改动生成链路、模板或词典后必须跑**。
 - 覆盖面清单（每个场景锁什么、页集↔fixture↔golden 规则、四个浏览器 harness 各自证明什么）→ **`references/selfcheck-gates.md`**。
 - 浏览器层（需本机 Chrome，`selfcheck --browser`）：交互/播报/版式/字号实测。**版式塌（横向溢出、底部导航遮内容、文本截断、侧栏压主区）用 `scripts/verify-layout.js` 的几何断言兜住**——不建像素基线（那会改 `head` 并重冻 golden）。
 

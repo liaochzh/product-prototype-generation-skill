@@ -2294,6 +2294,69 @@ ${body}
     bad.length === 0, bad.map((t) => `${t}:${COPY_LEXICON[t].list.table.idPrefix}`).join('；'));
 }
 
+// ---- 场景 41：一致性闸门（负例，证明非假绿）----
+// WHY：`consistencyFail` 若只断言「当前产物通过」，模板再漂移一次也不会红（假绿风险）。
+// 本场景先取基线，再**注入两处真实回归**，断言闸门确实置位：
+//  a) header 回退 `px-5` → header/main 左右不等（gutter_delta 非 0）
+//  b) 横滚行的 `-mx-page px-page` 改成 `-mx-4 px-8` → 负 margin 与内边距不配对
+// 另断言 button 档仍为 advisory（B2 未做时不得因 5–6 种而判红）。
+{
+  const ws = newWs(FULL_PRD);
+  run(GEN, ws, ['--platform', 'mobile', '--quiet']);
+  const base = verifyJson(ws);
+  check('一致性闸门基线：gutter/slot/负 margin 全绿',
+    base.consistencyFail === 0 && base.passed === true &&
+    !!base.consistency && base.consistency.gutterDeltaMax === 0 && base.consistency.negMarginMismatch === 0,
+    JSON.stringify(base.consistency));
+  check('控件渲染高度按 px 聚类（不是 class 写法），且 advisory 与档位数一致',
+    !!base.consistency
+      && base.consistency.buttonKinds > 0
+      && (base.consistency.buttonKindsList || []).every((v) => /^\d+px$/.test(v))
+      && base.consistency.buttonKindsAdvisory === (base.consistency.buttonKinds > 3),
+    JSON.stringify(base.consistency && { kinds: base.consistency.buttonKindsList, advisory: base.consistency.buttonKindsAdvisory }));
+
+  // (a) header 回退 px-5 → 跨元素对齐破裂
+  const homePath = join(ws, 'prototype', 'pages', 'home.html');
+  const home = read(homePath);
+  const mutated = home.replace('<header class="sticky top-0 z-10 px-page ', '<header class="sticky top-0 z-10 px-5 ');
+  writeFileSync(homePath, mutated);
+  check('一致性闸门负例：注入点存在（header px-page 未被静默漏改）', mutated !== home, 'header px-page 未命中，负例无效');
+  const a = verifyJson(ws);
+  check('header 回退 px-5 → consistencyFail>=1 且 passed:false',
+    a.consistencyFail >= 1 && a.passed === false && a.consistency.gutterDeltaMax > 0,
+    JSON.stringify({ cf: a.consistencyFail, delta: a.consistency && a.consistency.gutterDeltaMax }));
+
+  // (b) 负 margin 与内边距不配对（-mx-4 = 16px vs px-8 = 32px）
+  const listPath = join(ws, 'prototype', 'pages', 'list.html');
+  const list = read(listPath);
+  const listMut = list.replace('-mx-page px-page pb-1', '-mx-4 px-8 pb-1');
+  writeFileSync(listPath, listMut);
+  writeFileSync(homePath, home);   // 复原 (a)，隔离 (b) 的判据
+  check('一致性闸门负例：注入点存在（-mx-page px-page 未被静默漏改）', listMut !== list, '-mx-page px-page 未命中，负例无效');
+  const b = verifyJson(ws);
+  check('-mx 与 px 不等 → consistencyFail>=1 且 passed:false',
+    b.consistencyFail >= 1 && b.passed === false && b.consistency.negMarginMismatch >= 1,
+    JSON.stringify({ cf: b.consistencyFail, mismatch: b.consistency && b.consistency.negMarginMismatch }));
+
+  // (c) 「统一但错误」：全站槽位一起回退 px-5（左右各自相等、唯一值=1）也必须红
+  //     WHY：只比「槽位是否单值」时，模板整体漂移会全绿 —— 这是 B1 缺陷的整批形态。
+  const dir = join(ws, 'prototype', 'pages');
+  const pageFiles = readdirSync(dir).filter((f) => f.endsWith('.html'));
+  let touched = 0;
+  for (const f of pageFiles) {
+    const p = join(dir, f);
+    const src = read(p);
+    const out = src.replace(/(class="[^"]*?)\bpx-page\b/g, '$1px-5');
+    if (out !== src) { writeFileSync(p, out); touched++; }
+  }
+  check('一致性闸门负例：注入点存在（px-page 可批量命中）', touched === pageFiles.length, `命中 ${touched}/${pageFiles.length}`);
+  const c = verifyJson(ws);
+  check('全站槽位统一回退 px-5 → consistencyFail>=1 且 passed:false',
+    c.consistencyFail >= 1 && c.passed === false && c.consistency.gutterDeltaMax === 0,
+    JSON.stringify({ cf: c.consistencyFail, delta: c.consistency && c.consistency.gutterDeltaMax }));
+  rmSync(ws, { recursive: true, force: true });
+}
+
 // ---- 汇总 ----
 let failed = 0;
 for (const r of results) {

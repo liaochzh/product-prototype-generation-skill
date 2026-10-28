@@ -39,7 +39,7 @@
       <% /* 购买区为「2 个通栏 + N 个半栏」固定骨架：按钮样式属布局，非领域文案 */ %>
       <% const _acts = it.copy.detail.desktop.actions || []; %>
       <% for (let _ai = 0; _ai < Math.min(2, _acts.length); _ai++) { const _a = _acts[_ai]; %>
-        <button class="btn <%= _a.tone === 'secondary' ? 'btn-secondary' : _a.tone === 'outline' ? 'btn-outline' : 'btn-primary' %> w-full py-3 active:scale-95"><i data-lucide="<%= _a.icon %>" class="mr-2"></i><%= _a.label %></button>
+        <button class="btn <%= _a.tone === 'secondary' ? 'btn-secondary' : _a.tone === 'outline' ? 'btn-outline' : 'btn-primary' %> w-full py-2.5 active:scale-95"><i data-lucide="<%= _a.icon %>" class="mr-2"></i><%= _a.label %></button>
       <% } %>
       <% if (_acts.length > 2) { %>
         <div class="flex gap-2">
