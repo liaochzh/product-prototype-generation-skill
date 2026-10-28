@@ -61,3 +61,7 @@ node scripts/freeze-golden.js        # golden 干跑（改动产物后先干跑�
 
 `docs/visual/` 随仓库发布（人工比对用的渲染留档）。`docs/plan`、`docs/review`、`docs/baton` 是本项目的
 本地工作文档（方案、审查报告、接力棒），**按 `.gitignore` 不发布**——它们含本地路径与门禁内部细节。
+
+## License
+
+MIT（见 `LICENSE`）。
