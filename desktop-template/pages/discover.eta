@@ -1,0 +1,47 @@
+<% const _dc = it.copy.discover || {}; %>
+<div class="mb-5 flex flex-wrap items-center gap-3">
+  <div class="flex gap-2 overflow-x-auto scrollbar-hide">
+    <% const _cats = _dc.cats || []; %>
+    <% for (let _i = 0; _i < _cats.length; _i++) { const _c = _cats[_i]; const _on = _i === 0; %>
+      <button type="button" aria-pressed="<%= _on %>" class="shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs font-medium transition <%= _on ? 'bg-brand-600 text-white shadow-sm' : 'bg-white text-neutral-600 ring-1 ring-neutral-200/70 hover:ring-neutral-300' %>"><%= _c %></button>
+    <% } %>
+  </div>
+  <select class="input ml-auto w-40" aria-label="<%= _dc.sortAriaLabel %>"><% for (const _s of (_dc.sorts || [])) { %><option><%= _s %></option><% } %></select>
+</div>
+
+<% const _imgs = (it.images || []); const _len = _imgs.length || 1; const _hero = _imgs[0]; %>
+<% if (_hero) { %>
+<a href="<%= it.link('detail','list','home') %>" class="relative mb-6 block h-64 overflow-hidden rounded-3xl" aria-label="<%= _dc.heroAriaLabel %>">
+  <img src="<%= _hero %>" alt="<%= _dc.heroImgAlt %>" class="h-full w-full object-cover" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+  <div class="absolute inset-0 hero-overlay"></div>
+  <div class="absolute inset-x-0 bottom-0 p-6 text-white">
+    <span class="eyebrow text-white/70"><%= _dc.heroBadge %></span>
+    <h3 class="hero-title mt-1.5"><%= _dc.heroTitle %></h3>
+    <p class="mt-1 max-w-lg text-sm text-white/80 line-clamp-2"><%= _dc.heroDesc %></p>
+  </div>
+</a>
+<% } %>
+
+<section class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3" aria-label="<%= (_dc.desktop || _dc).ariaLabel %>">
+  <% for (let _i = 0; _i < 6; _i++) { %>
+    <% const _src = _imgs.length ? _imgs[_i % _len] : it.placeholder; %>
+    <a href="<%= it.link('detail','list','home') %>" class="card card-lift group overflow-hidden">
+      <div class="overflow-hidden">
+        <img src="<%= _src %>" alt="<%= (_dc.desktop || _dc).cardImgAlt %>" loading="lazy" class="h-44 w-full object-cover transition duration-500 group-hover:scale-105" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+      </div>
+      <div class="p-4">
+        <span class="badge bg-brand-50 text-brand-700"><%= _dc.cardBadge %></span>
+        <h3 class="item-title mt-2 line-clamp-1"><%= (_dc.desktop || _dc).cardName(_i) %></h3>
+        <p class="mt-1 text-sm text-neutral-500 line-clamp-2"><%= _dc.cardDesc %></p>
+        <div class="meta mt-3 flex items-center gap-3 text-neutral-400">
+          <span class="inline-flex items-center gap-1"><i data-lucide="eye" class="text-xs"></i><%= 120 + _i * 37 %></span>
+          <span class="inline-flex items-center gap-1"><i data-lucide="heart" class="text-xs"></i><%= 12 + _i * 5 %></span>
+        </div>
+      </div>
+    </a>
+  <% } %>
+</section>
+
+<div class="mt-6 flex justify-center">
+  <button class="btn btn-outline px-6 py-2.5"><i data-lucide="loader-circle" class="mr-2 text-base"></i><%= _dc.loadMore %></button>
+</div>

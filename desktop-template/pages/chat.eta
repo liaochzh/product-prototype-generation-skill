@@ -1,0 +1,61 @@
+<div class="card overflow-hidden">
+  <div class="flex h-[70vh] min-h-[520px]">
+    <aside class="hidden w-80 shrink-0 flex-col border-r border-neutral-200 md:flex" aria-label="<%= it.copy.chat.ariaLabel.conversations %>">
+      <div class="border-b border-neutral-200 p-3">
+        <div class="relative">
+          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-base"></i>
+          <input class="input pl-9" placeholder="<%= it.copy.chat.ariaLabel.searchConversation %>" aria-label="<%= it.copy.chat.ariaLabel.searchConversation %>" />
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto">
+        <% const _convs = it.copy.chat.conversations || []; %>
+        <% for (let _i = 0; _i < _convs.length; _i++) { const _c = _convs[_i]; %>
+          <button class="flex w-full items-center gap-3 border-b border-neutral-100 p-3 text-left transition <%= _i===0 ? 'bg-brand-50/60' : 'hover:bg-neutral-50' %>">
+            <img src="<%= (it.images||[])[_i % ((it.images||[]).length || 1)] || it.placeholder %>" alt="<%= _c.name %>" class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-2"><span class="item-title truncate text-neutral-900"><%= _c.name %></span><span class="shrink-0 meta text-neutral-400"><%= _c.time %></span></div>
+              <p class="mt-0.5 truncate text-xs text-neutral-500"><%= _c.last %></p>
+            </div>
+            <% if (_c.badge > 0) { %><span class="grid h-5 min-w-[20px] place-items-center rounded-full bg-brand-600 px-1.5 text-micro font-semibold text-white"><%= _c.badge %></span><% } %>
+          </button>
+        <% } %>
+      </div>
+    </aside>
+
+    <section class="flex min-w-0 flex-1 flex-col" aria-label="<%= it.copy.chat.ariaLabel.chatWindow %>">
+      <header class="flex items-center gap-3 border-b border-neutral-200 px-5 py-3">
+        <img src="<%= (it.images||[])[0] || it.placeholder %>" alt="<%= it.copy.chat.ariaLabel.peerAvatar %>" class="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+        <div class="min-w-0 flex-1">
+          <p class="item-title text-neutral-900"><%= it.copy.chat.peerName %></p>
+          <p class="inline-flex items-center gap-1 text-xs text-emerald-600"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span><%= it.copy.chat.peerState %></p>
+        </div>
+        <button class="grid h-9 w-9 place-items-center rounded-full text-neutral-500 transition hover:bg-neutral-100" aria-label="<%= it.copy.chat.ariaLabel.voiceCall %>"><i data-lucide="phone" class="text-lg"></i></button>
+        <button class="grid h-9 w-9 place-items-center rounded-full text-neutral-500 transition hover:bg-neutral-100" aria-label="<%= it.copy.chat.ariaLabel.videoCall %>"><i data-lucide="video" class="text-lg"></i></button>
+        <button class="grid h-9 w-9 place-items-center rounded-full text-neutral-500 transition hover:bg-neutral-100" aria-label="<%= it.copy.a11y.more %>"><i data-lucide="ellipsis" class="text-lg"></i></button>
+      </header>
+
+      <div class="flex-1 space-y-4 overflow-y-auto bg-neutral-50/60 p-5" role="log" aria-live="polite">
+        <p class="text-center meta text-neutral-400"><%= it.copy.chat.todayLabel %></p>
+        <% const _msgs = (it.copy.chat.messages || []).map((m) => ({ in: m.side !== 'out', role: m.side === 'out' ? it.copy.chat.selfRole : it.copy.chat.peerRole, text: m.text, time: m.time })); %>
+        <% for (let _mi = 0; _mi < _msgs.length; _mi++) { const _m = _msgs[_mi]; %>
+          <div class="flex <%= _m.in ? '' : 'flex-row-reverse' %> gap-2">
+            <img src="<%= it.pick(_mi) %>" alt="<%= _m.role %>" class="h-8 w-8 shrink-0 rounded-full object-cover" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+            <div class="max-w-[62%]">
+              <p class="mb-1 meta text-neutral-400 <%= _m.in ? 'text-left' : 'text-right' %>"><%= _m.time %></p>
+              <div class="<%= _m.in ? 'bg-white text-neutral-800 ring-1 ring-neutral-200/70 rounded-tl-none' : 'bg-brand-600 text-white rounded-tr-none' %> rounded-2xl px-4 py-2.5 shadow-sm">
+                <p class="text-sm leading-relaxed"><%= _m.text %></p>
+              </div>
+            </div>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="flex items-center gap-2 border-t border-neutral-200 p-3">
+        <button class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-neutral-500 transition hover:bg-neutral-100" aria-label="<%= it.copy.chat.ariaLabel.attachments %>"><i data-lucide="paperclip" class="text-lg"></i></button>
+        <button class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-neutral-500 transition hover:bg-neutral-100" aria-label="<%= it.copy.chat.ariaLabel.images %>"><i data-lucide="image" class="text-lg"></i></button>
+        <input class="input flex-1" placeholder="<%= it.copy.chat.inputPlaceholder %>" aria-label="<%= it.copy.chat.ariaLabel.inputMessage %>" />
+        <button class="btn btn-primary h-10 shrink-0 px-4" aria-label="<%= it.copy.chat.ariaLabel.send %>"><i data-lucide="send" class="mr-2 text-base"></i><%= it.copy.chat.ariaLabel.send %></button>
+      </div>
+    </section>
+  </div>
+</div>

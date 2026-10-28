@@ -1,0 +1,77 @@
+<% const _od = it.copy.orders || {}; const _otab = _od.table || {}; %>
+<% const _ex = _od.exportStatus || {}; %>
+<section class="mb-4 grid grid-cols-2 gap-4 lg:grid-cols-4" aria-label="<%= _od.ariaLabel && _od.ariaLabel.overview %>">
+  <% for (const _s of (_od.overview || [])) { %>
+    <article class="stat flex items-center gap-3">
+      <span class="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="<%= _s.icon %>" class="text-lg"></i></span>
+      <div><p class="meta text-neutral-500"><%= _s.label %></p><p class="stat-value text-neutral-900"><%= _s.value %></p></div>
+    </article>
+  <% } %>
+</section>
+
+<div class="card mb-4 flex flex-wrap items-center gap-3 p-3">
+  <div class="flex gap-2 overflow-x-auto scrollbar-hide">
+    <% for (const _t of (_od.tabs || [])) { const _act = !!_t.active; %>
+      <button type="button" aria-pressed="<%= _act %>" class="shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-medium transition <%= _act ? 'bg-brand-600 text-white shadow-sm' : 'bg-white text-neutral-600 ring-1 ring-neutral-200/70 hover:ring-neutral-300' %>"><%= _t.label %></button>
+    <% } %>
+  </div>
+  <div class="relative ml-auto min-w-56"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-base"></i><input class="input pl-9" placeholder="<%= _od.searchPlaceholder %>" aria-label="<%= _od.ariaLabel && _od.ariaLabel.search %>" /></div>
+  <button type="button" data-export data-pending="<%= _ex.pending || '' %>" data-done="<%= _ex.done || '' %>" class="btn btn-outline px-4"><i data-lucide="download" class="mr-2 text-base"></i><%= _od.exportLabel %></button>
+  <% /* 过程反馈（WCAG 4.1.3）：导出状态行**常驻**（可见文案即 live region 内容，由脚本写入词典文案）；
+        预留一行高度避免点击时布局跳动。注意：禁止把 hidden 挂在 live region 自身上（不可靠），
+        状态切换一律用内层节点/文本变化。 */ %>
+  <p role="status" aria-live="polite" aria-atomic="true" class="w-full text-xs text-neutral-500 min-h-[1rem]" data-export-status></p>
+</div>
+
+<section class="card overflow-hidden" aria-label="<%= _od.ariaLabel && _od.ariaLabel.list %>">
+  <table class="w-full text-sm">
+    <thead><tr class="bg-neutral-50/80 text-neutral-500">
+      <% for (const _c of (_otab.cols || [])) { %>
+        <th scope="col" class="text-left px-5 py-3 font-medium"><%= _c.label %></th>
+      <% } %>
+    </tr></thead>
+    <tbody class="divide-y divide-neutral-200">
+      <% /* 固定 6 列骨架：0 单号(等宽) / 1 商品(图+名) / 2 金额(强调) / 3 状态徽标 / 4 时间(次要) / 5 操作 */ %>
+      <% const _otdCls = ['px-5 py-4 font-mono text-xs text-neutral-500', 'px-5 py-4', 'px-5 py-4 item-title text-neutral-900', 'px-5 py-4', 'px-5 py-4 text-neutral-500', 'px-5 py-4']; %>
+      <% for (let _i = 0; _i < (_otab.rows || []).length; _i++) { const _o = _otab.rows[_i]; %>
+        <tr class="transition hover:bg-neutral-50">
+          <% for (let _c = 0; _c < (_otab.cols || []).length; _c++) { const _v = _o.cells[_c]; %>
+          <td class="<%= _otdCls[_c] || 'px-5 py-4' %>">
+            <% if (_c === 1) { %>
+              <div class="flex items-center gap-3"><img src="<%= (it.images||[])[_i % ((it.images||[]).length || 1)] || it.placeholder %>" alt="" class="h-11 w-11 rounded-lg object-cover ring-1 ring-neutral-200" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" /><span class="item-title text-neutral-900"><%= _v %></span></div>
+            <% } else if (_c === 3) { %>
+              <span class="badge <%= it.tone(_o.badge && _o.badge.tone) %>"><%= _v %></span>
+            <% } else if (_c === 5) { %>
+              <button class="btn btn-outline h-8 px-3 text-xs"><%= _od.rowActionLabel %></button>
+            <% } else { %><%= _v %><% } %>
+          </td>
+          <% } %>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+  <div class="flex items-center justify-between border-t border-neutral-200 px-5 py-3.5">
+    <p class="text-sm text-neutral-500"><%= _od.totalLabel %></p>
+    <div class="flex gap-1.5"><button class="btn btn-outline h-8 px-3 text-xs" disabled><%= it.copy.ux.prev %></button><button class="btn btn-primary h-8 px-3 text-xs">1</button><button class="btn btn-outline h-8 px-3 text-xs">2</button><button class="btn btn-outline h-8 px-3 text-xs"><%= it.copy.ux.next %></button></div>
+  </div>
+</section>
+
+<script>
+(function () {
+  // 过程反馈（WCAG 4.1.3 状态消息）：点击「导出」后把状态写入常驻 role="status" 区域——
+  // 可见文案变化即播报；文案来自词典（data-* 透传），不在脚本里硬编码。
+  var toArr = function (n) { return Array.prototype.slice.call(n); };
+  toArr(document.querySelectorAll('[data-export]')).forEach(function (b) {
+    b.addEventListener('click', function () {
+      var st = document.querySelector('[data-export-status]');
+      if (!st || b.getAttribute('data-busy')) { return; }
+      b.setAttribute('data-busy', '1');
+      st.textContent = b.getAttribute('data-pending') || '';
+      setTimeout(function () {
+        st.textContent = b.getAttribute('data-done') || '';
+        b.removeAttribute('data-busy');
+      }, 900);
+    });
+  });
+})();
+</script>

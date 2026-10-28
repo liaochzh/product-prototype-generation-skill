@@ -1,0 +1,38 @@
+<div class="min-h-full bg-neutral-50 pb-28">
+  <header class="sticky top-0 z-10 px-5 pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
+    <p class="eyebrow text-brand-600"><%= it.meta.productName %></p>
+    <h2 class="page-title mt-1 text-neutral-900"><%= it.copy.orders.title %></h2>
+    <div class="mt-3 flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
+      <% const _status = it.copy.orders.tabs || []; %>
+      <% for (const _s of _status) { %>
+        <button aria-pressed="<%= _s.active ? 'true' : 'false' %>" class="shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-medium transition <%= _s.active ? 'bg-brand-600 text-white shadow-sm' : 'bg-white text-neutral-600 ring-1 ring-neutral-200/70' %>"><%= _s.label %></button>
+      <% } %>
+    </div>
+  </header>
+  <main class="px-4 pt-4 space-y-4">
+    <section aria-label="<%= it.copy.orders.ariaLabel.list %>" class="space-y-3">
+      <% const _orders = (it.copy.orders.cards && it.copy.orders.cards.rows) || []; %>
+      <% for (let _oi = 0; _oi < _orders.length; _oi++) { const _o = _orders[_oi]; %>
+        <article class="card p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="meta"><%= _o.idLabel %> <%= _o.id %></span>
+            <span class="badge <%= it.tone(_o.statusColor) %>"><%= _o.status %></span>
+          </div>
+          <a href="<%= it.link('detail','list','home') %>" class="flex gap-3 active:scale-95 transition">
+            <img src="<%= it.pick(_oi) %>" alt="<%= _o.name %>" class="h-20 w-20 shrink-0 rounded-xl object-cover" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+            <div class="flex-1 min-w-0 py-0.5">
+              <h3 class="item-title line-clamp-1"><%= _o.name %></h3>
+              <% if (_o.qty) { %><p class="meta mt-1"><%= _o.qtyLabel %><%= _o.qty %></p><% } %>
+              <% if (_o.amount) { %><p class="price mt-1.5 text-brand-600"><%= _o.amount %></p><% } %>
+            </div>
+          </a>
+          <div class="flex gap-2 border-t border-neutral-200 pt-3">
+            <% for (const _a of (_o.actions || [])) { %>
+              <button class="btn btn-<%= _a.tone === 'primary' ? 'primary' : _a.tone === 'secondary' ? 'secondary' : 'outline' %> flex-1 py-2 active:scale-95"><%= _a.label %></button>
+            <% } %>
+          </div>
+        </article>
+      <% } %>
+    </section>
+  </main>
+</div>

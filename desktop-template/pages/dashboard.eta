@@ -1,0 +1,47 @@
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" aria-label="<%= it.copy.dashboard.kpisAriaLabel %>">
+  <% for (const _k of (it.copy.dashboard.kpis || [])) { %>
+    <article class="stat">
+      <div class="flex items-center justify-between">
+        <p class="label text-neutral-500"><%= _k.label %></p>
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><i data-lucide="<%= _k.icon %>" class="text-base"></i></span>
+      </div>
+      <p class="stat-hero mt-3 text-neutral-900"><%= _k.value %></p>
+      <% /* tone 决定涨跌配色与箭头方向：down 必须用红色下箭头，否则负向指标显示成绿色上升 */ %>
+      <% const _dn = _k.tone === 'down'; %>
+      <p class="mt-2 delta <%= _dn ? 'bg-rose-50' : 'bg-emerald-50' %> <%= _dn ? 'text-rose-600' : 'text-emerald-600' %>"><i data-lucide="<%= _dn ? 'trending-down' : 'trending-up' %>" class="text-xs"></i><%= _k.delta %> <%= it.copy.dashboard.deltaSuffix %></p>
+    </article>
+  <% } %>
+</section>
+<div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <% const _tr = it.copy.dashboard.trend || {}; %>
+  <section class="card p-5" aria-label="<%= _tr.sectionAriaLabel %>">
+    <div class="flex items-center justify-between"><h3 class="section-title"><%= _tr.title %></h3><span class="chip"><%= _tr.range %></span></div>
+    <% const _bars = _tr.bars || []; const _max = Math.max.apply(null, _bars.concat([1])); const _axis = _tr.axis || []; %>
+    <% /* axis/bars 按较短长度配对，避免长度不一致时 aria-label 拼出 undefined */ %>
+    <div class="mt-6 flex h-48 items-end justify-around gap-2" role="img" aria-label="<%= _tr.chartAriaLabel %><%= _axis.map((_a, _i) => [ _a, _bars[_i] ]).filter((_p) => _p[0] !== undefined && _p[1] !== undefined).map((_p) => _p[0] + ' ' + _p[1]).join('，') %>">
+      <% for (const _v of _bars) { %>
+        <div class="flex h-40 max-w-16 flex-1 flex-col items-center justify-end">
+          <div class="w-full rounded-t-lg bg-brand-500 transition-all duration-300 hover:bg-brand-600" style="height:<%= (_v/_max*100).toFixed(0) %>%"></div>
+          <span class="meta mt-2 text-neutral-500"><%= _v %></span>
+        </div>
+      <% } %>
+    </div>
+  </section>
+  <% const _ds = it.copy.dashboard.distribution || {}; %>
+  <section class="card p-5" aria-label="<%= _ds.sectionAriaLabel %>">
+    <div class="flex items-center justify-between"><h3 class="section-title"><%= _ds.title %></h3><span class="chip"><%= _ds.range %></span></div>
+    <div class="mt-6 space-y-4">
+      <% for (const _c of (_ds.items || [])) { %>
+        <div class="flex items-center gap-3"><span class="w-24 text-sm text-neutral-600"><%= _c.label %></span><div class="h-2.5 flex-1 overflow-hidden rounded-full bg-neutral-100"><div class="h-full rounded-full" style="width:<%= _c.value %>%;background:<%= _c.color %>"></div></div><span class="w-10 text-right label text-neutral-700"><%= _c.value %>%</span></div>
+      <% } %>
+    </div>
+  </section>
+</div>
+<section class="card mt-4 overflow-hidden" aria-label="<%= it.copy.dashboard.activitiesTitle %>">
+  <div class="flex items-center justify-between border-b border-neutral-200 px-5 py-4"><h3 class="section-title"><%= it.copy.dashboard.activitiesTitle %></h3><button class="btn btn-outline h-8 px-3 text-xs"><%= it.copy.ux.viewAll %></button></div>
+  <div class="divide-y divide-neutral-200">
+    <% for (const _a of (it.copy.dashboard.activities || [])) { %>
+      <div class="flex items-center gap-4 px-5 py-4 transition hover:bg-neutral-50"><span class="h-2 w-2 shrink-0 rounded-full <%= _a.dot %>"></span><div class="min-w-0 flex-1"><p class="item-title text-neutral-800"><%= _a.type %>：<span class="text-neutral-600"><%= _a.ref %></span></p><p class="meta text-neutral-400"><%= _a.time %></p></div><i data-lucide="chevron-right" class="text-neutral-300 text-base"></i></div>
+    <% } %>
+  </div>
+</section>

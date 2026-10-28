@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="账号中心高保真可交互原型">
+  <meta name="theme-color" content="hsl(215, 38%, 35%)">
+  <title>账号中心原型</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>window.addEventListener('DOMContentLoaded',function(){window.lucide&&window.lucide.createIcons();});</script>
+  <script>
+  tailwind.config = {
+  "content": [],
+  "theme": {
+    "extend": {
+      "colors": {
+        "brand": {
+          "50": "hsl(215, 28%, 67%)",
+          "100": "hsl(215, 28%, 62%)",
+          "200": "hsl(215, 28%, 52%)",
+          "300": "hsl(215, 28%, 42%)",
+          "400": "hsl(215, 28%, 32%)",
+          "500": "hsl(215, 28%, 17%)",
+          "600": "hsl(215, 38%, 35%)",
+          "700": "hsl(215, 43%, 30%)",
+          "800": "hsl(215, 48%, 25%)",
+          "900": "hsl(215, 53%, 20%)",
+          "950": "hsl(215, 58%, 15%)"
+        },
+        "success": {
+          "50": "hsl(142, 76%, 86%)",
+          "100": "hsl(142, 76%, 81%)",
+          "200": "hsl(142, 76%, 71%)",
+          "300": "hsl(142, 76%, 61%)",
+          "400": "hsl(142, 76%, 51%)",
+          "500": "hsl(142, 76%, 36%)",
+          "600": "hsl(142, 86%, 35%)",
+          "700": "hsl(142, 90%, 30%)",
+          "800": "hsl(142, 90%, 25%)",
+          "900": "hsl(142, 90%, 20%)",
+          "950": "hsl(142, 90%, 15%)"
+        },
+        "warning": {
+          "50": "hsl(38, 92%, 95%)",
+          "100": "hsl(38, 92%, 90%)",
+          "200": "hsl(38, 92%, 80%)",
+          "300": "hsl(38, 92%, 70%)",
+          "400": "hsl(38, 92%, 60%)",
+          "500": "hsl(38, 92%, 50%)",
+          "600": "hsl(38, 90%, 40%)",
+          "700": "hsl(38, 90%, 35%)",
+          "800": "hsl(38, 90%, 30%)",
+          "900": "hsl(38, 90%, 25%)",
+          "950": "hsl(38, 90%, 20%)"
+        },
+        "error": {
+          "50": "hsl(0, 84%, 95%)",
+          "100": "hsl(0, 84%, 90%)",
+          "200": "hsl(0, 84%, 80%)",
+          "300": "hsl(0, 84%, 70%)",
+          "400": "hsl(0, 84%, 60%)",
+          "500": "hsl(0, 84%, 60%)",
+          "600": "hsl(0, 90%, 50%)",
+          "700": "hsl(0, 90%, 45%)",
+          "800": "hsl(0, 90%, 40%)",
+          "900": "hsl(0, 90%, 35%)",
+          "950": "hsl(0, 90%, 30%)"
+        },
+        "info": {
+          "50": "hsl(199, 89%, 95%)",
+          "100": "hsl(199, 89%, 90%)",
+          "200": "hsl(199, 89%, 80%)",
+          "300": "hsl(199, 89%, 70%)",
+          "400": "hsl(199, 89%, 60%)",
+          "500": "hsl(199, 89%, 48%)",
+          "600": "hsl(199, 90%, 38%)",
+          "700": "hsl(199, 90%, 33%)",
+          "800": "hsl(199, 90%, 28%)",
+          "900": "hsl(199, 90%, 23%)",
+          "950": "hsl(199, 90%, 18%)"
+        },
+        "neutral": {
+          "50": "hsl(220, 20%, 98%)",
+          "100": "hsl(220, 17%, 95%)",
+          "200": "hsl(220, 14%, 90%)",
+          "300": "hsl(220, 12%, 82%)",
+          "400": "hsl(220, 10%, 64%)",
+          "500": "hsl(220, 9%, 46%)",
+          "600": "hsl(220, 10%, 34%)",
+          "700": "hsl(220, 12%, 26%)",
+          "800": "hsl(220, 14%, 16%)",
+          "900": "hsl(220, 16%, 10%)",
+          "950": "hsl(220, 20%, 5%)"
+        },
+        "background": "neutral.50",
+        "surface": "white",
+        "surface-hover": "neutral.100",
+        "border": "neutral.200",
+        "border-hover": "neutral.300",
+        "text": "neutral.900",
+        "text-muted": "neutral.500",
+        "text-inverse": "white"
+      },
+      "fontFamily": {
+        "sans": [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "SF Pro Text",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif"
+        ],
+        "mono": [
+          "ui-monospace",
+          "SFMono-Regular",
+          "SF Mono",
+          "Menlo",
+          "Consolas",
+          "Liberation Mono",
+          "monospace"
+        ],
+        "display": [
+          "Playfair Display",
+          "Georgia",
+          "Songti SC",
+          "Cambria",
+          "Times New Roman",
+          "serif"
+        ]
+      },
+      "letterSpacing": {
+        "tighter": "-0.03em",
+        "tight": "-0.02em",
+        "normal": "0em",
+        "wide": "0.02em",
+        "wider": "0.05em",
+        "widest": "0.14em"
+      },
+      "fontSize": {
+        "micro": [
+          "0.6875rem",
+          {
+            "lineHeight": "1.4"
+          }
+        ],
+        "xs": [
+          "0.75rem",
+          {
+            "lineHeight": "1.5"
+          }
+        ],
+        "sm": [
+          "0.875rem",
+          {
+            "lineHeight": "1.5"
+          }
+        ],
+        "base": [
+          "1rem",
+          {
+            "lineHeight": "1.6"
+          }
+        ],
+        "lg": [
+          "1.125rem",
+          {
+            "lineHeight": "1.55"
+          }
+        ],
+        "xl": [
+          "1.25rem",
+          {
+            "lineHeight": "1.5",
+            "letterSpacing": "-0.01em"
+          }
+        ],
+        "2xl": [
+          "1.5rem",
+          {
+            "lineHeight": "1.35",
+            "letterSpacing": "-0.015em"
+          }
+        ],
+        "3xl": [
+          "1.875rem",
+          {
+            "lineHeight": "1.25",
+            "letterSpacing": "-0.02em"
+          }
+        ],
+        "4xl": [
+          "2.25rem",
+          {
+            "lineHeight": "1.15",
+            "letterSpacing": "-0.022em"
+          }
+        ],
+        "5xl": [
+          "3rem",
+          {
+            "lineHeight": "1.08",
+            "letterSpacing": "-0.024em"
+          }
+        ],
+        "6xl": [
+          "3.75rem",
+          {
+            "lineHeight": "1.02",
+            "letterSpacing": "-0.025em"
+          }
+        ]
+      },
+      "lineHeight": {
+        "tight": "1.25",
+        "normal": "1.5",
+        "relaxed": "1.6",
+        "loose": "2"
+      },
+      "spacing": {
+        "0": "0",
+        "1": "0.25rem",
+        "2": "0.5rem",
+        "3": "0.75rem",
+        "4": "1rem",
+        "5": "1.25rem",
+        "6": "1.5rem",
+        "8": "2rem",
+        "10": "2.5rem",
+        "12": "3rem",
+        "16": "4rem",
+        "20": "5rem",
+        "24": "6rem"
+      },
+      "borderRadius": {
+        "none": "0",
+        "sm": "0.25rem",
+        "md": "0.375rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
+        "4xl": "2rem",
+        "full": "9999px"
+      },
+      "boxShadow": {
+        "xs": "0 1px 2px 0 rgb(15 23 42 / 0.04)",
+        "sm": "0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.04)",
+        "md": "0 2px 4px -1px rgb(15 23 42 / 0.05), 0 4px 10px -2px rgb(15 23 42 / 0.05)",
+        "lg": "0 4px 8px -2px rgb(15 23 42 / 0.06), 0 12px 22px -6px rgb(15 23 42 / 0.08)",
+        "xl": "0 8px 16px -4px rgb(15 23 42 / 0.07), 0 22px 36px -10px rgb(15 23 42 / 0.10)",
+        "2xl": "0 16px 32px -8px rgb(15 23 42 / 0.10), 0 36px 60px -16px rgb(15 23 42 / 0.13)",
+        "inner": "inset 0 1px 2px 0 rgb(15 23 42 / 0.05)",
+        "card-hover": "0 10px 22px -8px rgb(15 23 42 / 0.12), 0 4px 8px -4px rgb(15 23 42 / 0.07)",
+        "modal": "0 30px 60px -12px rgb(15 23 42 / 0.22), 0 14px 24px -8px rgb(15 23 42 / 0.10)"
+      },
+      "backdropBlur": {
+        "none": "0",
+        "sm": "4px",
+        "md": "12px",
+        "lg": "16px",
+        "xl": "24px",
+        "2xl": "40px",
+        "3xl": "64px"
+      },
+      "screens": {
+        "sm": "640px",
+        "md": "768px",
+        "lg": "1024px",
+        "xl": "1280px",
+        "2xl": "1536px"
+      },
+      "transitionDuration": {
+        "fast": "150ms",
+        "normal": "200ms",
+        "slow": "300ms",
+        "slower": "500ms"
+      },
+      "transitionTimingFunction": {
+        "ease-out": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "ease-in": "cubic-bezier(0.4, 0, 1, 1)",
+        "ease-in-out": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "spring": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+      },
+      "keyframes": {
+        "fade-in": {
+          "0%": {
+            "opacity": "0"
+          },
+          "100%": {
+            "opacity": "1"
+          }
+        },
+        "fade-out": {
+          "0%": {
+            "opacity": "1"
+          },
+          "100%": {
+            "opacity": "0"
+          }
+        },
+        "slide-up": {
+          "0%": {
+            "transform": "translateY(10px)",
+            "opacity": "0"
+          },
+          "100%": {
+            "transform": "translateY(0)",
+            "opacity": "1"
+          }
+        },
+        "slide-down": {
+          "0%": {
+            "transform": "translateY(-10px)",
+            "opacity": "0"
+          },
+          "100%": {
+            "transform": "translateY(0)",
+            "opacity": "1"
+          }
+        },
+        "scale-in": {
+          "0%": {
+            "transform": "scale(0.95)",
+            "opacity": "0"
+          },
+          "100%": {
+            "transform": "scale(1)",
+            "opacity": "1"
+          }
+        },
+        "spin": {
+          "0%": {
+            "transform": "rotate(0deg)"
+          },
+          "100%": {
+            "transform": "rotate(360deg)"
+          }
+        },
+        "pulse-soft": {
+          "0%, 100%": {
+            "opacity": "1"
+          },
+          "50%": {
+            "opacity": "0.7"
+          }
+        },
+        "shimmer": {
+          "0%": {
+            "backgroundPosition": "-200% 0"
+          },
+          "100%": {
+            "backgroundPosition": "200% 0"
+          }
+        },
+        "touch-feedback": {
+          "0%": {
+            "transform": "scale(1)"
+          },
+          "50%": {
+            "transform": "scale(0.96)"
+          },
+          "100%": {
+            "transform": "scale(1)"
+          }
+        }
+      },
+      "animation": {
+        "fade-in": "fade-in 200ms ease-out",
+        "fade-out": "fade-out 150ms ease-in",
+        "slide-up": "slide-up 300ms ease-out",
+        "slide-down": "slide-down 300ms ease-out",
+        "scale-in": "scale-in 200ms ease-out",
+        "spin": "spin 1s linear infinite",
+        "pulse-soft": "pulse-soft 2s ease-in-out infinite",
+        "shimmer": "shimmer 2s linear infinite",
+        "touch-feedback": "scale-in 100ms ease-out"
+      },
+      "zIndex": {
+        "dropdown": 100,
+        "sticky": 200,
+        "fixed": 300,
+        "modalBackdrop": 400,
+        "modal": 500,
+        "popover": 600,
+        "tooltip": 700,
+        "toast": 800
+      },
+      "typeRole": {
+        "pageTitle": {
+          "token": "2xl",
+          "weight": "700"
+        },
+        "navTitle": {
+          "token": "lg",
+          "weight": "600"
+        },
+        "heroTitle": {
+          "token": "xl",
+          "weight": "700"
+        },
+        "sectionTitle": {
+          "token": "base",
+          "weight": "600"
+        },
+        "itemTitle": {
+          "token": "base",
+          "weight": "600"
+        },
+        "price": {
+          "token": "lg",
+          "weight": "700"
+        },
+        "priceHero": {
+          "token": "2xl",
+          "weight": "700"
+        },
+        "statValue": {
+          "token": "lg",
+          "weight": "700"
+        },
+        "statHero": {
+          "token": "2xl",
+          "weight": "700"
+        },
+        "label": {
+          "token": "sm",
+          "weight": "500"
+        },
+        "meta": {
+          "token": "xs",
+          "weight": "400"
+        }
+      }
+    }
+  }
+,
+  "plugins": [
+    (function ({ addUtilities, addComponents, theme }) {
+        /**
+         * fontSize token 为 [size, { lineHeight, letterSpacing }] 数组形态，
+         * theme('fontSize.xs') 返回整个数组；直接赋给 fontSize 会生成
+         * `font-size: 0.75rem,1.5` 这样的非法 CSS 并被整条丢弃。
+         * 因此组件类里的字号必须经这两个助手解包，禁止再写裸字面量。
+         */
+        const typeSize = (key) => {
+          const v = theme(`fontSize.${key}`);
+          return Array.isArray(v) ? v[0] : v;
+        };
+        const typeLineHeight = (key) => {
+          const v = theme(`fontSize.${key}`);
+          return Array.isArray(v) ? (v[1] && v[1].lineHeight) || theme('lineHeight.normal') : theme('lineHeight.normal');
+        };
+
+        // 文本截断
+        addUtilities({
+          '.text-balance': { 'text-wrap': 'balance' },
+          '.line-clamp-1': { display: '-webkit-box', '-webkit-line-clamp': '1', '-webkit-box-orient': 'vertical', overflow: 'hidden' },
+          '.line-clamp-2': { display: '-webkit-box', '-webkit-line-clamp': '2', '-webkit-box-orient': 'vertical', overflow: 'hidden' },
+          '.line-clamp-3': { display: '-webkit-box', '-webkit-line-clamp': '3', '-webkit-box-orient': 'vertical', overflow: 'hidden' },
+        });
+
+        // 滚动条隐藏
+        addUtilities({
+          '.scrollbar-hide': {
+            '-ms-overflow-style': 'none',
+            'scrollbar-width': 'none',
+            '&::-webkit-scrollbar': { display: 'none' },
+          },
+        });
+
+        // 毛玻璃
+        addUtilities({
+          '.glass': {
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+          },
+          '.glass-dark': {
+            background: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+          },
+        });
+
+        // 排版与装饰工具类
+        // 语义排版角色：role → 解包后的 { fontSize, lineHeight, fontWeight }
+        // （token 来自 theme.typeRole，由 generateTailwindConfig 按平台注入）
+        const role = (name, letterSpacing) => {
+          const r = theme(`typeRole.${name}`) || {};
+          const token = r.token || 'base';
+          const out = {
+            fontSize: typeSize(token),
+            lineHeight: typeLineHeight(token),
+            fontWeight: r.weight || '400',
+          };
+          if (letterSpacing) out.letterSpacing = letterSpacing;
+          return out;
+        };
+        addUtilities({
+          // 眉标：大写、宽字距的小标签
+          '.eyebrow': {
+            fontSize: typeSize('micro'),
+            fontWeight: '600',
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            lineHeight: '1',
+          },
+          // ── 语义排版角色：同类元素一律引用，禁止再用裸 text-* 表达这些角色 ──
+          // 注意：这些类走 addUtilities（层叠后于核心 text-* utility），
+          // 故不再设置 color —— 否则会覆盖 `text-rose-600` 之类的颜色类；
+          // 默认颜色靠 layout body 的 text-neutral-900 继承。
+          '.page-title': role('pageTitle', '-0.015em'),
+          '.nav-title': role('navTitle', '-0.01em'),
+          '.hero-title': role('heroTitle', '-0.015em'),
+          '.section-title': role('sectionTitle', '-0.01em'),
+          '.item-title': role('itemTitle', '-0.005em'),
+          '.price': role('price'),
+          '.price-hero': role('priceHero', '-0.015em'),
+          '.stat-value': role('statValue', '-0.015em'),
+          '.stat-hero': role('statHero', '-0.015em'),
+          '.label': role('label'),
+          '.meta': role('meta'),
+          // 极细分割线
+          '.hairline': {
+            height: '1px',
+            background: theme('colors.neutral.200'),
+            border: 'none',
+          },
+          // 图片底部渐隐遮罩（用于图文叠加可读性）
+          '.hero-overlay': {
+            background: 'linear-gradient(to top, rgba(2,6,23,0.82) 0%, rgba(2,6,23,0.30) 45%, rgba(2,6,23,0) 100%)',
+          },
+          // 卡片悬停轻抬升
+          '.card-lift': {
+            transition: 'transform 250ms cubic-bezier(0.4,0,0.2,1), box-shadow 250ms cubic-bezier(0.4,0,0.2,1)',
+            '&:hover': { transform: 'translateY(-2px)', boxShadow: theme('boxShadow.lg') },
+          },
+          // 焦点环
+          '.focus-ring': {
+            outline: 'none',
+            '&:focus-visible': { outline: '2px solid', outlineOffset: '2px', outlineColor: theme('colors.brand.500') },
+          },
+        });
+
+        // 组件类
+        addComponents({
+          '.btn': {
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            fontWeight: '600',
+            fontSize: typeSize('sm'),
+            letterSpacing: '-0.005em',
+            borderRadius: theme('borderRadius.xl'),
+            transition: 'background-color 150ms ease-out, box-shadow 150ms ease-out, transform 120ms ease-out',
+            cursor: 'pointer',
+            border: 'none',
+            outline: 'none',
+            whiteSpace: 'nowrap',
+            '&:disabled': { opacity: '0.5', cursor: 'not-allowed' },
+            '&:focus-visible': { outline: '2px solid', outlineOffset: '2px', outlineColor: theme('colors.brand.500') },
+          },
+          '.btn-primary': {
+            backgroundColor: theme('colors.brand.600'),
+            color: 'white',
+            boxShadow: '0 1px 2px 0 rgb(15 23 42 / 0.12)',
+            '&:hover:not(:disabled)': { backgroundColor: theme('colors.brand.700'), boxShadow: '0 4px 10px -2px rgb(15 23 42 / 0.18)' },
+            '&:active:not(:disabled)': { backgroundColor: theme('colors.brand.800'), transform: 'translateY(1px)' },
+          },
+          '.btn-secondary': {
+            backgroundColor: theme('colors.neutral.100'),
+            color: theme('colors.neutral.900'),
+            '&:hover:not(:disabled)': { backgroundColor: theme('colors.neutral.200') },
+            '&:active:not(:disabled)': { backgroundColor: theme('colors.neutral.300') },
+          },
+          '.btn-ghost': {
+            backgroundColor: 'transparent',
+            color: theme('colors.neutral.700'),
+            '&:hover:not(:disabled)': { backgroundColor: theme('colors.neutral.100') },
+            '&:active:not(:disabled)': { backgroundColor: theme('colors.neutral.200') },
+          },
+          '.btn-outline': {
+            backgroundColor: 'white',
+            border: `1px solid ${theme('colors.neutral.200')}`,
+            color: theme('colors.neutral.800'),
+            '&:hover:not(:disabled)': { borderColor: theme('colors.neutral.300'), backgroundColor: theme('colors.neutral.50') },
+          },
+          '.input': {
+            width: '100%',
+            padding: '0.625rem 0.875rem',
+            fontSize: typeSize('sm'),
+            lineHeight: typeLineHeight('sm'),
+            color: theme('colors.neutral.900'),
+            backgroundColor: 'white',
+            border: `1px solid ${theme('colors.neutral.200')}`,
+            borderRadius: theme('borderRadius.xl'),
+            transition: 'border-color 150ms ease-out, box-shadow 150ms ease-out',
+            boxShadow: '0 1px 2px 0 rgb(15 23 42 / 0.03)',
+            '&:focus': { outline: 'none', borderColor: theme('colors.brand.400'), boxShadow: `0 0 0 3px ${theme('colors.brand.100')}` },
+            '&::placeholder': { color: theme('colors.neutral.400') },
+            '&:disabled': { backgroundColor: theme('colors.neutral.100'), cursor: 'not-allowed' },
+          },
+          '.card': {
+            backgroundColor: 'white',
+            borderRadius: theme('borderRadius.2xl'),
+            boxShadow: theme('boxShadow.sm'),
+            border: `1px solid ${theme('colors.neutral.200')}`,
+            transition: 'box-shadow 220ms cubic-bezier(0.4,0,0.2,1), border-color 220ms ease-out, transform 220ms cubic-bezier(0.4,0,0.2,1)',
+            '&:hover': { boxShadow: theme('boxShadow.lg'), borderColor: theme('colors.neutral.300') },
+          },
+          '.badge': {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+            padding: '0.1875rem 0.5rem',
+            fontSize: typeSize('micro'),
+            fontWeight: '600',
+            lineHeight: typeLineHeight('micro'),
+            borderRadius: theme('borderRadius.full'),
+          },
+          // 涨跌/变化量胶囊（数值型 delta）。WHY 与 .badge（micro=11、600）分开：
+          // 它承载的是带图标的数值对比短语（`+18.3% 环比`），档位为 xs=12、字重 500，
+          // 两页（desktop home/dashboard）此前各自写死 `rounded-full px-2 py-0.5 text-xs font-medium`
+          // —— 形似 .badge 而档位不同，属「未被契约覆盖的同值重复」，本轮收纳为独立组件类。
+          // 不设 color：颜色由调用方的语义色类（text-rose-600 / text-emerald-600）决定。
+          '.delta': {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+            padding: '0.125rem 0.5rem',
+            fontSize: typeSize('xs'),
+            fontWeight: '500',
+            lineHeight: typeLineHeight('xs'),
+            borderRadius: theme('borderRadius.full'),
+          },
+          // 柔性胶囊标签（品牌色调）
+          '.chip': {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+            padding: '0.3125rem 0.75rem',
+            fontSize: typeSize('xs'),
+            fontWeight: '500',
+            color: theme('colors.neutral.600'),
+            backgroundColor: theme('colors.neutral.100'),
+            borderRadius: theme('borderRadius.full'),
+            border: `1px solid ${theme('colors.neutral.200')}`,
+            transition: 'background-color 150ms ease-out, color 150ms ease-out',
+            '&:hover': { backgroundColor: theme('colors.neutral.200'), color: theme('colors.neutral.800') },
+          },
+          // 统计块
+          '.stat': {
+            backgroundColor: 'white',
+            borderRadius: theme('borderRadius.2xl'),
+            border: `1px solid ${theme('colors.neutral.200')}`,
+            boxShadow: theme('boxShadow.sm'),
+            padding: '1.25rem',
+          },
+        });
+      })
+  ]
+};
+</script>
+  <style>
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, SF Pro Text, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+    ::selection { background-color: hsl(215, 28%, 52%); color: hsl(215, 53%, 20%); }
+    .lucide { width: 1em; height: 1em; display: inline-block; vertical-align: -0.125em; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: hsl(220, 12%, 82%); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: hsl(220, 10%, 64%); }
+  </style></head>
+<body class="text-neutral-900 antialiased min-h-screen flex items-center justify-center p-6" style="background:radial-gradient(1200px 600px at 15% 0%, hsl(220 30% 97%), transparent), radial-gradient(900px 500px at 100% 100%, hsl(220 26% 95%), transparent), hsl(220 20% 98%)">
+<style>
+  /* 档位自适应（仅外壳预览）：wide/pane 大框在小屏上等比缩放，避免溢出视口。
+     transform 仅视觉缩放，不影响 iframe 内页面的逻辑视口（页面按 logicalWidth/Height 计算）。 */
+  [data-aspect="wide"] { transform: scale(.72); transform-origin: center top; }
+  [data-aspect="pane"] { transform: scale(.86); transform-origin: center top; }
+  /* 折痕示意：单条折痕以渐变表示，提示交互元素避开折痕区 */
+  .crease-line { position: absolute; z-index: 40; pointer-events: none; }
+</style>
+<main class="flex flex-col lg:flex-row gap-12 items-center max-w-6xl w-full" role="main">
+  <section class="hidden lg:flex flex-col max-w-sm" aria-label="原型说明">
+    <div class="mb-8"><span class="inline-flex items-center gap-2.5"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-bold text-white shadow-sm" style="background:hsl(215, 38%, 35%)">账</span><span class="text-sm font-semibold tracking-tight text-neutral-900">账号中心</span></span></div>
+    <p class="eyebrow text-brand-600">移动端高保真原型</p>
+    <h1 class="mt-3 text-4xl font-bold tracking-tight text-neutral-900">账号中心</h1>
+    <p class="mt-4 text-sm leading-relaxed text-neutral-500">左侧为可交互页面导航，右侧为 iPhone 16 沉浸式预览。直接点击页面名称即可切换，或在手机内点按完成交互。</p>
+    <div class="mt-8 h-px w-full" style="background:hsl(220 14% 90%)"></div>
+    <nav class="mt-8 flex flex-wrap gap-2" aria-label="页面导航">
+              <a href="pages/home.html" target="phone" class="px-3.5 py-2 rounded-full bg-white text-xs font-medium text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 hover:ring-brand-300 hover:text-brand-700 hover:shadow transition focus-ring">首页</a>
+              <a href="pages/profile.html" target="phone" class="px-3.5 py-2 rounded-full bg-white text-xs font-medium text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 hover:ring-brand-300 hover:text-brand-700 hover:shadow transition focus-ring">我的</a>
+              <a href="pages/login.html" target="phone" class="px-3.5 py-2 rounded-full bg-white text-xs font-medium text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 hover:ring-brand-300 hover:text-brand-700 hover:shadow transition focus-ring">登录</a>
+              <a href="pages/register.html" target="phone" class="px-3.5 py-2 rounded-full bg-white text-xs font-medium text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 hover:ring-brand-300 hover:text-brand-700 hover:shadow transition focus-ring">注册</a>
+          </nav>
+    <p class="mt-8 text-xs text-neutral-400">共 4 个页面 · 文案中文 · 图片 AI/Unsplash 混合</p>
+  </section>
+  <section aria-label="手机预览" class="relative mx-auto shrink-0" data-device="iphone16" data-aspect="phone" data-panes="1" data-vertical-space="normal" style="width:419px;height:878px;background:linear-gradient(160deg,#1c1d22,#0b0b0f);border-radius:58px;padding:13px;box-shadow:0 40px 80px -20px rgb(15 23 42 / .45),0 0 0 1px rgb(255 255 255 / .06),inset 0 0 0 2px rgb(255 255 255 / .03)">
+    <div class="relative w-full h-full bg-white overflow-hidden" style="border-radius:45px">
+            <!-- 灵动岛 -->
+      <div class="absolute top-2.5 left-1/2 -translate-x-1/2 bg-black z-30 flex items-center justify-center" style="width:126px;height:37px;border-radius:20px" aria-hidden="true">
+        <div class="w-2.5 h-2.5 rounded-full bg-white/25"></div>
+      </div>
+            <!-- 状态栏：动态时间、信号、电池 -->
+            <div class="absolute top-0 inset-x-0 z-20 flex justify-between items-center px-8 pt-4 text-xs font-semibold tracking-wide pointer-events-none" style="height:54px;padding-top:0" aria-hidden="true" id="status-bar">
+        <span id="status-time">9:41</span>
+        <span class="flex items-center gap-1" id="status-signal"><i data-lucide="signal" class="text-micro"></i>5G</span>
+        <span class="flex items-center gap-1" id="status-battery"><i data-lucide="battery-full" class="text-micro"></i>100%</span>
+      </div>
+      <script>
+        (function(){
+          function pad(n){return n<10?'0'+n:n}
+          function upd(){
+            const d=new Date();
+            document.getElementById('status-time').textContent=d.getHours()+':'+pad(d.getMinutes());
+            document.getElementById('status-signal').innerHTML='<i data-lucide="signal" class="text-micro"></i>5G';
+            // 固定电量：产物需可复现（同输入两次生成字节一致），非真实电量读数
+            const bat=92;
+            const icon=bat>50?'battery-full':bat>20?'battery-medium':'battery-low';
+            document.getElementById('status-battery').innerHTML='<i data-lucide="'+icon+'" class="text-micro"></i>'+bat+'%';
+            if(window.lucide&&window.lucide.createIcons)window.lucide.createIcons();
+          }
+          upd(); setInterval(upd,30000);
+        })();
+      </script>
+      <iframe name="phone" title="首页" src="pages/home.html" class="absolute inset-0 w-full h-full border-0" style="top:0;width:393px;height:852px"></iframe>
+                  <!-- Home Indicator -->
+      <div class="absolute bottom-2.5 inset-x-0 z-20 pointer-events-none" aria-hidden="true"><div class="mx-auto bg-neutral-900/85" style="width:134px;height:5px;border-radius:3px"></div></div>
+          </div>
+  </section>
+</main>
+</body>
+</html>

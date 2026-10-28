@@ -1,0 +1,74 @@
+<% const _hm = it.copy.dashboard.home || {}; %>
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" aria-label="<%= _hm.kpisAriaLabel %>">
+  <% for (const _k of (_hm.kpis || [])) { %>
+    <% /* tone 决定涨跌配色与箭头方向，与 dashboard.eta 同一约定 */ %>
+    <% const _down = _k.tone === 'down'; %>
+    <article class="stat">
+      <div class="flex items-center justify-between">
+        <p class="label text-neutral-500"><%= _k.label %></p>
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-neutral-100 text-neutral-500"><i data-lucide="<%= _k.icon %>" class="text-base"></i></span>
+      </div>
+      <p class="stat-hero mt-3 text-neutral-900"><%= _k.value %></p>
+      <p class="mt-2 delta <%= _down ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600' %>"><i data-lucide="<%= _down ? 'trending-down' : 'trending-up' %>" class="text-xs"></i><%= _k.delta %> <%= it.copy.dashboard.deltaSuffix %></p>
+    </article>
+  <% } %>
+</section>
+
+<% const _ht = _hm.trend || {}; const _htb = _ht.bars || []; const _hta = _ht.axis || []; %>
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+  <div class="lg:col-span-2 card p-5" aria-label="<%= _ht.sectionAriaLabel %>">
+    <div class="flex items-center justify-between">
+      <h3 class="section-title"><%= _ht.title %></h3>
+      <span class="chip"><%= _ht.range %></span>
+    </div>
+    <div class="mt-6 flex items-end gap-2.5 h-40">
+      <% for (let _i = 0; _i < _htb.length; _i++) { %>
+        <div class="flex-1 rounded-t-lg bg-brand-100 hover:bg-brand-300 transition-colors" style="height:<%= _htb[_i] %>%" title="<%= _htb[_i] %>"></div>
+      <% } %>
+    </div>
+    <% /* axis 按 bars 实际长度取，避免长度不一致时渲染出多余标签 */ %>
+    <div class="mt-3 flex justify-between text-xs text-neutral-400"><% for (let _i = 0; _i < _htb.length && _i < _hta.length; _i++) { %><span><%= _hta[_i] %></span><% } %></div>
+  </div>
+  <% const _hg = _hm.target || {}; %>
+  <div class="card p-5 flex flex-col" aria-label="<%= _hg.ariaLabel %>">
+    <h3 class="section-title"><%= _hg.title %></h3>
+    <div class="mt-5 flex items-baseline gap-2"><span class="stat-hero"><%= _hg.value %></span><span class="text-sm text-neutral-400"><%= _hg.doneLabel %></span></div>
+    <div class="mt-4 h-2 rounded-full bg-neutral-100 overflow-hidden"><div class="h-full rounded-full bg-brand-500" style="width:<%= _hg.value %>"></div></div>
+    <p class="mt-4 text-sm text-neutral-500 leading-relaxed"><%= _hg.remainText %><% if (_hg.remainValue) { %> <span class="font-semibold text-neutral-700"><%= _hg.remainValue %></span><% } %><%= _hg.remainSuffix %></p>
+  </div>
+</section>
+
+<% const _hb = it.copy.dashboard.table || {}; %>
+<section class="card mt-4 overflow-hidden" aria-label="<%= _hm.tableAriaLabel %>">
+  <div class="px-5 py-4 border-b border-neutral-200 flex items-center justify-between">
+    <h3 class="section-title"><%= _hb.title %></h3>
+    <button class="btn btn-outline px-3 h-8 text-xs"><%= it.copy.ux.viewAll %></button>
+  </div>
+  <table class="w-full text-sm">
+    <thead><tr class="text-neutral-500 bg-neutral-50/80">
+      <% for (const _c of (_hb.cols || [])) { %><th scope="col" class="text-left px-5 py-3 font-medium"><%= _c %></th><% } %>
+    </tr></thead>
+    <tbody>
+    <% for (const _r of (_hm.tableRows || _hb.rows || [])) { %>
+      <tr class="border-t border-neutral-200 hover:bg-neutral-50 transition">
+        <td class="px-5 py-3 item-title text-neutral-800"><%= _r.cells[0] %></td>
+        <td class="px-5 py-3"><span class="badge <%= it.tone(_r.badge && _r.badge.tone) %>"><%= _r.badge && _r.badge.text %></span></td>
+        <td class="px-5 py-3 text-neutral-500"><%= _r.cells[2] %></td>
+      </tr>
+    <% } %>
+    </tbody>
+  </table>
+</section>
+
+<% const _hero = (it.images||[])[0]; %>
+<% if (_hero) { %>
+  <% const _hh = it.copy.dashboard.hero || {}; %>
+  <section class="mt-4 relative overflow-hidden rounded-3xl" aria-label="<%= _hm.heroAriaLabel %>">
+    <img src="<%= _hero %>" alt="<%= _hh.imgAlt %>" loading="lazy" class="w-full h-56 object-cover" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+    <div class="absolute inset-0 hero-overlay"></div>
+    <div class="absolute inset-x-0 bottom-0 p-6 text-white">
+      <span class="eyebrow text-white/70"><%= _hh.eyebrow %></span>
+      <h3 class="hero-title mt-1"><%= _hh.title %></h3>
+    </div>
+  </section>
+<% } %>

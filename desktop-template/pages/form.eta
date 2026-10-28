@@ -1,0 +1,89 @@
+<div class="mx-auto max-w-2xl space-y-6">
+  <% /* 数据源：form.sections 为唯一字段来源（与移动端同形状）；desktop 只承载「可选区块 + 底部动作」 */ %>
+  <% const _fd = it.copy.form.desktop || {}; %>
+  <% const _secs = it.copy.form.sections || []; %>
+  <% for (const _sec of _secs) { %>
+  <section class="card p-6" aria-label="<%= _sec.ariaLabel || _sec.title %>">
+    <h2 class="section-title mb-5"><%= _sec.title %></h2>
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <% for (const _f of (_sec.fields || [])) { %>
+        <% /* 字段容错：id 可缺（不输出 for/aria-describedby 的引用）、未识别 kind 按 text、wide 或 textarea 占整行 */ %>
+        <% const _id = _f.id || ''; const _hint = _f.hint && _id ? _f.hint : ''; const _wide = _f.wide || _f.kind === 'textarea'; %>
+        <div class="<%= _wide ? 'md:col-span-2' : '' %>">
+          <label<% if (_id) { %> for="<%= _id %>"<% } %> class="mb-1 block label text-neutral-600"><%= _f.label || '' %><% if (_f.required) { %> <span class="text-rose-500" aria-hidden="true">*</span><% } %></label>
+          <% if (_f.kind === 'select') { %>
+            <select<% if (_id) { %> id="<%= _id %>"<% } %> class="input"<% if (_f.required) { %> aria-required="true"<% } %><% if (_hint) { %> aria-describedby="<%= _id %>-help"<% } %>><% for (const _o of (_f.options || [])) { %><option<%= _o.selected ? ' selected' : '' %>><%= _o.label %></option><% } %></select>
+          <% } else if (_f.kind === 'textarea') { %>
+            <textarea<% if (_id) { %> id="<%= _id %>"<% } %> class="input min-h-[140px]" placeholder="<%= _f.placeholder || '' %>" aria-label="<%= _f.ariaLabel || _f.label || '' %>"<% if (_f.required) { %> aria-required="true"<% } %><% if (_hint) { %> aria-describedby="<%= _id %>-help"<% } %>></textarea>
+          <% } else if (_f.kind === 'number') { %>
+            <div class="flex items-center gap-3"><% if (_f.priceUnit) { %><span class="price text-brand-600"><%= _f.priceUnit %></span><% } %><input<% if (_id) { %> id="<%= _id %>"<% } %> class="input flex-1" type="number" step="0.01" min="0.01" placeholder="<%= _f.placeholder || '' %>" aria-label="<%= _f.ariaLabel || _f.label || '' %>"<% if (_f.required) { %> required aria-required="true"<% } %> /></div>
+          <% } else { %>
+            <input<% if (_id) { %> id="<%= _id %>"<% } %> class="input" type="text" placeholder="<%= _f.placeholder || '' %>"<% if (_f.required) { %> aria-required="true"<% } %><% if (_hint) { %> aria-describedby="<%= _id %>-help"<% } %> />
+          <% } %>
+          <% if (_hint) { %><p id="<%= _id %>-help" class="meta mt-1 text-neutral-500"><%= _hint %></p><% } %>
+        </div>
+      <% } %>
+    </div>
+  </section>
+  <% } %>
+  <% /* 图片块：slots <= 0 表示该领域不需要上传（如任务/条目表单） */ %>
+  <% if (_fd.imageBlock && _fd.imageBlock.slots > 0) { %>
+  <section class="card p-6" aria-label="<%= _fd.imageBlock.ariaLabel %>">
+    <h2 class="section-title mb-5"><%= _fd.imageBlock.title %></h2>
+    <div class="grid grid-cols-3 gap-3" id="image-upload">
+      <% for (let _i = 0; _i < _fd.imageBlock.slots; _i++) { %>
+        <label class="relative flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 transition hover:border-brand-300 hover:bg-brand-50/40">
+          <input type="file" accept="image/*" class="absolute inset-0 opacity-0" aria-label="<%= _fd.imageBlock.slotsAriaPrefix %> <%= _i + 1 %>" />
+          <i data-lucide="plus" class="text-2xl text-neutral-400"></i>
+        </label>
+      <% } %>
+    </div>
+    <p class="meta mt-2 text-neutral-500"><%= _fd.imageBlock.hint %></p>
+  </section>
+  <% } %>
+  <% /* 价格块：title 为空 = 该领域无定价语义（非电商） */ %>
+  <% if (_fd.price && _fd.price.title) { %>
+  <section class="card p-6" aria-label="<%= _fd.price.ariaLabel %>">
+    <h2 class="section-title mb-5"><%= _fd.price.title %></h2>
+    <div class="space-y-5">
+      <div class="flex items-center gap-3"><span class="price w-8 text-center text-brand-600"><%= _fd.price.unit %></span><input class="input flex-1" type="number" step="0.01" min="0.01" placeholder="<%= _fd.price.placeholder %>" aria-label="<%= _fd.price.inputAriaLabel %>" required /><% if (_fd.price.suggest) { %><span class="text-sm text-neutral-500"><%= _fd.price.suggest %></span><% } %></div>
+      <div><label for="<%= _fd.price.desc.id %>" class="mb-1 block label text-neutral-600"><%= _fd.price.desc.label %><% if (_fd.price.desc.required) { %> <span class="text-rose-500" aria-hidden="true">*</span><% } %></label><textarea id="<%= _fd.price.desc.id %>" class="input min-h-[140px]" placeholder="<%= _fd.price.desc.placeholder %>"<% if (_fd.price.desc.required) { %> aria-required="true"<% } %>></textarea></div>
+      <% if (_fd.price.free.label) { %>
+        <label class="flex items-center gap-3"><input type="checkbox" class="h-4 w-4 rounded text-brand-600" id="<%= _fd.price.free.id %>"<%= _fd.price.free.checked ? ' checked' : '' %> /><span class="text-sm"><%= _fd.price.free.label %></span></label>
+      <% } %>
+    </div>
+  </section>
+  <% } %>
+  <% /* 交付块：title 为空 = 无交付语义 */ %>
+  <% if (_fd.delivery && _fd.delivery.title) { %>
+  <section class="card p-6" aria-label="<%= _fd.delivery.ariaLabel %>">
+    <h2 class="section-title mb-5"><%= _fd.delivery.title %></h2>
+    <div class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <% for (const _f of (_fd.delivery.fields || [])) { %>
+          <div>
+            <label for="<%= _f.id %>" class="mb-1 block label text-neutral-600"><%= _f.label %></label>
+            <% if (_f.kind === 'select') { %>
+              <select id="<%= _f.id %>" class="input"><% for (const _o of (_f.options || [])) { %><option<%= _o.selected ? ' selected' : '' %>><%= _o.label %></option><% } %></select>
+            <% } else { %>
+              <input id="<%= _f.id %>" class="input" placeholder="<%= _f.placeholder %>" />
+            <% } %>
+          </div>
+        <% } %>
+      </div>
+      <% if (_fd.delivery.extra.label) { %>
+        <label class="flex items-center gap-3"><input type="checkbox" class="h-4 w-4 rounded text-brand-600" id="<%= _fd.delivery.extra.id %>"<%= _fd.delivery.extra.checked ? ' checked' : '' %> /><span class="text-sm"><%= _fd.delivery.extra.label %></span></label>
+      <% } %>
+    </div>
+  </section>
+  <% } %>
+  <div class="flex justify-end gap-3">
+    <% /* 空 label：primary 回退到领域化 submit 文案；非 primary 跳过（不渲染空按钮） */ %>
+    <% for (const _a of (_fd.actions || [])) { %>
+      <% const _label = _a.label || (_a.tone === 'primary' ? it.copy.form.submit : ''); %>
+      <% if (_label) { %>
+      <button id="<%= _a.id %>" class="btn <%= _a.tone === 'outline' ? 'btn-outline' : _a.tone === 'secondary' ? 'btn-secondary' : 'btn-primary' %> px-6 py-2.5 active:scale-95"><%= _label %></button>
+      <% } %>
+    <% } %>
+  </div>
+</div>

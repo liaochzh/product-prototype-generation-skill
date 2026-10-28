@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><%~ it.head %></head>
+<body class="bg-neutral-50 text-neutral-900 antialiased" style="min-height:100vh">
+<%~ it.pageContent %>
+<%~ it.tabbar %>
+</body>
+</html>

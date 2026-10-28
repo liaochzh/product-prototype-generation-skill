@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><%~ it.head %></head>
+<body class="text-neutral-900 antialiased min-h-screen flex items-center justify-center p-6" style="background:radial-gradient(1200px 600px at 15% 0%, hsl(220 30% 97%), transparent), radial-gradient(900px 500px at 100% 100%, hsl(220 26% 95%), transparent), hsl(220 20% 98%)">
+<style>
+  /* 档位自适应（仅外壳预览）：wide/pane 大框在小屏上等比缩放，避免溢出视口。
+     transform 仅视觉缩放，不影响 iframe 内页面的逻辑视口（页面按 logicalWidth/Height 计算）。 */
+  [data-aspect="wide"] { transform: scale(.72); transform-origin: center top; }
+  [data-aspect="pane"] { transform: scale(.86); transform-origin: center top; }
+  /* 折痕示意：单条折痕以渐变表示，提示交互元素避开折痕区 */
+  .crease-line { position: absolute; z-index: 40; pointer-events: none; }
+</style>
+<main class="flex flex-col lg:flex-row gap-12 items-center max-w-6xl w-full" role="main">
+  <section class="hidden lg:flex flex-col max-w-sm" aria-label="原型说明">
+    <div class="mb-8"><%~ it.signature %></div>
+    <p class="eyebrow text-brand-600">移动端高保真原型</p>
+    <h1 class="mt-3 text-4xl font-bold tracking-tight text-neutral-900"><%= it.meta.productName %></h1>
+    <p class="mt-4 text-sm leading-relaxed text-neutral-500">左侧为可交互页面导航，右侧为 <%= it.device.label %> 沉浸式预览。直接点击页面名称即可切换，或在手机内点按完成交互。</p>
+    <div class="mt-8 h-px w-full" style="background:hsl(220 14% 90%)"></div>
+    <nav class="mt-8 flex flex-wrap gap-2" aria-label="页面导航">
+      <% for (const _n of it.nav) { %>
+        <a href="<%= it.shellLink(_n.name) %>" target="phone" class="px-3.5 py-2 rounded-full bg-white text-xs font-medium text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 hover:ring-brand-300 hover:text-brand-700 hover:shadow transition focus-ring"><%= _n.title %></a>
+      <% } %>
+    </nav>
+    <p class="mt-8 text-xs text-neutral-400">共 <%= it.nav.length %> 个页面 · 文案中文 · 图片 AI/Unsplash 混合</p>
+  </section>
+  <section aria-label="手机预览" class="relative mx-auto shrink-0" data-device="<%= it.device.key %>" data-aspect="<%= it.device.aspectClass %>" data-panes="<%= it.device.panes %>" data-vertical-space="<%= it.device.verticalSpace %>" style="width:<%= it.device.frameWidth %>px;height:<%= it.device.frameHeight %>px;background:linear-gradient(160deg,#1c1d22,#0b0b0f);border-radius:<%= it.device.cornerRadius %>px;padding:<%= it.device.bezel %>px;box-shadow:0 40px 80px -20px rgb(15 23 42 / .45),0 0 0 1px rgb(255 255 255 / .06),inset 0 0 0 2px rgb(255 255 255 / .03)">
+    <div class="relative w-full h-full bg-white overflow-hidden" style="border-radius:<%= it.device.cornerRadius - it.device.bezel %>px">
+      <% if (it.device.cutout && it.device.cutout.type === 'dynamicIsland') { %>
+      <!-- 灵动岛 -->
+      <div class="absolute top-2.5 left-1/2 -translate-x-1/2 bg-black z-30 flex items-center justify-center" style="width:<%= it.device.cutout.width %>px;height:<%= it.device.cutout.height %>px;border-radius:<%= it.device.cutout.radius %>px" aria-hidden="true">
+        <div class="w-2.5 h-2.5 rounded-full bg-white/25"></div>
+      </div>
+      <% } else if (it.device.cutout && it.device.cutout.type === 'punchHole') { %>
+      <!-- 挖孔摄像头 -->
+      <div class="absolute top-2.5 left-1/2 -translate-x-1/2 bg-black rounded-full z-30" style="width:<%= it.device.cutout.size %>px;height:<%= it.device.cutout.size %>px" aria-hidden="true"></div>
+      <% } %>
+      <!-- 状态栏：动态时间、信号、电池 -->
+      <% /* statusBarHeight 语义是「状态栏占用带高」，内容垂直居中；内联 padding-top:0 中和 pt-4
+            （class 保持不变以免动 golden 的 classes 维）。不可改成 padding-top:54px——那会把文字
+            压到页面 pt-14(56px) 的标题行上，默认机型即视觉重叠，而三维闸门测不出来。 */ %>
+      <div class="absolute top-0 inset-x-0 z-20 flex justify-between items-center px-8 pt-4 text-xs font-semibold tracking-wide pointer-events-none" style="height:<%= it.device.statusBarHeight %>px;padding-top:0" aria-hidden="true" id="status-bar">
+        <span id="status-time">9:41</span>
+        <span class="flex items-center gap-1" id="status-signal"><i data-lucide="signal" class="text-micro"></i>5G</span>
+        <span class="flex items-center gap-1" id="status-battery"><i data-lucide="battery-full" class="text-micro"></i>100%</span>
+      </div>
+      <script>
+        (function(){
+          function pad(n){return n<10?'0'+n:n}
+          function upd(){
+            const d=new Date();
+            document.getElementById('status-time').textContent=d.getHours()+':'+pad(d.getMinutes());
+            document.getElementById('status-signal').innerHTML='<i data-lucide="signal" class="text-micro"></i>5G';
+            // 固定电量：产物需可复现（同输入两次生成字节一致），非真实电量读数
+            const bat=92;
+            const icon=bat>50?'battery-full':bat>20?'battery-medium':'battery-low';
+            document.getElementById('status-battery').innerHTML='<i data-lucide="'+icon+'" class="text-micro"></i>'+bat+'%';
+            if(window.lucide&&window.lucide.createIcons)window.lucide.createIcons();
+          }
+          upd(); setInterval(upd,30000);
+        })();
+      </script>
+      <iframe name="phone" title="<%= it.title %>" src="<%= it.homeHref %>" class="absolute inset-0 w-full h-full border-0" style="top:0;width:<%= it.device.logicalWidth %>px;height:<%= it.device.logicalHeight %>px"></iframe>
+      <% if (it.device.crease && it.device.crease.axis === 'v') { %>
+      <% for (const _pos of it.device.crease.positions) { %>
+      <div class="crease-line" style="left:<%= (_pos * 100).toFixed(2) %>%;top:0;bottom:0;width:<%= it.device.crease.width %>px;transform:translateX(-50%);background:linear-gradient(90deg,transparent,rgba(0,0,0,.05) 30%,rgba(0,0,0,.10) 50%,rgba(0,0,0,.05) 70%,transparent)" aria-hidden="true"></div>
+      <% } %>
+      <% } else if (it.device.crease && it.device.crease.axis === 'h') { %>
+      <% for (const _pos of it.device.crease.positions) { %>
+      <div class="crease-line" style="top:<%= (_pos * 100).toFixed(2) %>%;left:0;right:0;height:<%= it.device.crease.width %>px;transform:translateY(-50%);background:linear-gradient(180deg,transparent,rgba(0,0,0,.05) 30%,rgba(0,0,0,.10) 50%,rgba(0,0,0,.05) 70%,transparent)" aria-hidden="true"></div>
+      <% } %>
+      <% } %>
+      <% if (it.device.homeIndicator) { %>
+      <!-- Home Indicator -->
+      <div class="absolute bottom-2.5 inset-x-0 z-20 pointer-events-none" aria-hidden="true"><div class="mx-auto bg-neutral-900/85" style="width:<%= it.device.homeIndicator.width %>px;height:<%= it.device.homeIndicator.height %>px;border-radius:3px"></div></div>
+      <% } %>
+    </div>
+  </section>
+</main>
+</body>
+</html>

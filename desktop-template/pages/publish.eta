@@ -1,0 +1,166 @@
+<div id="publishWizard" class="mx-auto max-w-5xl">
+  <% /* override 可整体替换 steps（甚至给空/短数组），故逐层兜底：_s0/_s1/_s2 为空对象时不渲染对应面板 */ %>
+<% const _pd = it.copy.publish.desktop || {}; const _side = _pd.side || {}; const _nav = _pd.nav || {};
+   const _steps = _pd.steps || [];
+   const _s0 = _steps[0] || {}; const _s1 = _steps[1] || {}; const _s2 = _steps[2] || {};
+   const _s1img = _s1.image || {};
+   const _tips = _side.tips || {}; const _boost = _side.boost || {}; const _prev = _side.preview || {}; %>
+  <ol class="mb-6 flex items-center gap-2" role="list" aria-label="<%= _pd.stepsAriaLabel %>">
+    <% for (let _i = 0; _i < _steps.length; _i++) { %>
+      <% const _on = _i === 0; %>
+      <li role="listitem" class="flex items-center gap-2 <%= _i > 0 ? 'flex-1' : '' %>">
+        <button type="button" data-goto="<%= _i %>" aria-controls="pub-panel-<%= _i %>" aria-current="<%= _on ? 'step' : 'false' %>" class="flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400">
+          <span data-dot class="grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-semibold <%= _on ? 'bg-brand-600 text-white shadow-sm' : 'bg-neutral-100 text-neutral-500' %>"><%= _i + 1 %></span>
+          <span data-label class="whitespace-nowrap text-sm font-medium <%= _on ? 'text-neutral-900' : 'text-neutral-500' %>"><%= _steps[_i].title %></span>
+        </button>
+        <% if (_i < _steps.length - 1) { %><span aria-hidden="true" class="mx-1 hidden h-px flex-1 bg-neutral-200 sm:block"></span><% } %>
+      </li>
+    <% } %>
+  </ol>
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div class="space-y-6 lg:col-span-2">
+      <% if (_steps[0]) { %>
+      <div data-panel="0" id="pub-panel-0" role="region" aria-label="<%= _s0.regionAria %>">
+        <section class="card p-6" aria-label="<%= _s0.ariaLabel %>">
+          <h2 class="section-title mb-4"><%= _s0.no %> · <%= _s0.panelTitle %></h2>
+          <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <% const _types = _s0.kinds || []; %>
+            <% for (let _i = 0; _i < _types.length; _i++) { const _t = _types[_i]; const _on = _i === 0; %>
+              <button type="button" aria-pressed="<%= _on %>" class="relative rounded-2xl border p-4 text-left transition <%= _on ? 'border-brand-500 bg-brand-50/50 ring-1 ring-brand-500' : 'border-neutral-200 hover:border-neutral-300' %>">
+                <% if (_on) { %><span class="absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-full bg-brand-600 text-white"><i aria-hidden="true" data-lucide="check" class="text-xs"></i></span><% } %>
+                <span class="grid h-10 w-10 place-items-center rounded-xl bg-neutral-100 text-neutral-600"><i aria-hidden="true" data-lucide="<%= _t.icon %>" class="text-lg"></i></span>
+                <p class="item-title mt-2.5"><%= _t.label %></p>
+                <p class="meta"><%= _t.sub %></p>
+              </button>
+            <% } %>
+          </div>
+        </section>
+      </div>
+      <% } %>
+
+      <% if (_steps[1]) { %>
+      <div data-panel="1" id="pub-panel-1" role="region" aria-label="<%= _s1.regionAria %>" class="hidden">
+        <section class="card p-6" aria-label="<%= _s1.ariaLabel %>">
+          <h2 class="section-title mb-4"><%= _s1.no %> · <%= _s1.panelTitle %></h2>
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <% for (const _f of (_s1.fields || [])) { %>
+              <div class="<%= _f.wide ? 'md:col-span-2' : '' %>">
+                <label for="<%= _f.id %>" class="mb-1 block label text-neutral-600"><%= _f.label %><% if (_f.required) { %> <span class="text-rose-500" aria-hidden="true">*</span><% } %></label>
+                <% if (_f.kind === 'select') { %>
+                  <select id="<%= _f.id %>" class="input"><% for (const _o of (_f.options || [])) { %><option<%= _o.selected ? ' selected' : '' %>><%= _o.label %></option><% } %></select>
+                <% } else if (_f.kind === 'textarea') { %>
+                  <textarea id="<%= _f.id %>" class="input min-h-[100px]" placeholder="<%= _f.placeholder %>"></textarea>
+                <% } else if (_f.kind === 'number') { %>
+                  <div class="flex items-center gap-2"><span class="price text-brand-600"><%= _f.unit %></span><input id="<%= _f.id %>" class="input flex-1" type="number" step="0.01" placeholder="<%= _f.placeholder %>"<% if (_f.ariaRequired) { %> aria-required="true"<% } %> /></div>
+                <% } else { %>
+                  <input id="<%= _f.id %>" class="input" placeholder="<%= _f.placeholder %>"<% if (_f.ariaRequired) { %> aria-required="true"<% } %> />
+                <% } %>
+              </div>
+            <% } %>
+          </div>
+          <div class="mt-5">
+            <p class="mb-2 label text-neutral-600"><%= _s1img.label %></p>
+            <div class="grid grid-cols-3 gap-3">
+              <% for (let _i = 0; _i < (_s1img.slots || 0); _i++) { %>
+                <label class="relative flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 transition hover:border-brand-300 hover:bg-brand-50/40 focus-within:ring-2 focus-within:ring-brand-400">
+                  <input type="file" accept="image/*" class="sr-only" aria-label="<%= _s1img.slotsAriaPrefix %> <%= _i + 1 %>" />
+                  <i aria-hidden="true" data-lucide="image-plus" class="text-2xl text-neutral-400"></i>
+                </label>
+              <% } %>
+            </div>
+          </div>
+        </section>
+      </div>
+      <% } %>
+
+      <% if (_steps[2]) { %>
+      <div data-panel="2" id="pub-panel-2" role="region" aria-label="<%= _s2.regionAria %>" class="hidden">
+        <section class="card p-6" aria-label="<%= _s2.ariaLabel %>">
+          <h2 class="section-title mb-4"><%= _s2.no %> · <%= _s2.panelTitle %></h2>
+          <dl class="divide-y divide-neutral-100 text-sm">
+            <% for (const _r of (_s2.rows || [])) { %>
+              <div class="flex items-center justify-between py-2.5"><dt class="text-neutral-500"><%= _r.label %></dt><dd class="font-medium text-neutral-900"><%= _r.value %></dd></div>
+            <% } %>
+          </dl>
+          <label class="mt-4 flex items-center gap-3"><input type="checkbox" class="h-4 w-4 rounded text-brand-600" checked /><span class="text-sm text-neutral-600"><%= _s2.agree %></span></label>
+        </section>
+      </div>
+      <% } %>
+
+      <div class="flex items-center justify-between">
+        <button type="button" data-prev disabled class="btn btn-outline cursor-not-allowed px-6 py-2.5 opacity-50"><%= _nav.prev %></button>
+        <p role="status" aria-live="polite" aria-atomic="true" class="text-sm font-medium text-emerald-600"><span data-status class="hidden"><%= _nav.status %></span></p>
+        <button type="button" data-next class="btn btn-primary px-6 py-2.5"><%= _nav.next %></button>
+      </div>
+    </div>
+
+    <aside class="space-y-4">
+      <section class="card p-5" aria-label="<%= _tips.ariaLabel %>">
+        <h3 class="section-title mb-3 flex items-center gap-2"><i aria-hidden="true" data-lucide="info" class="text-lg text-brand-600"></i><%= _tips.title %></h3>
+        <ol class="list-decimal space-y-2 pl-4 text-sm text-neutral-600">
+          <% for (const _t of (_tips.items || [])) { %><li><%= _t %></li><% } %>
+        </ol>
+      </section>
+      <section class="card p-5" aria-label="<%= _boost.ariaLabel %>">
+        <h3 class="section-title mb-3 flex items-center gap-2"><i aria-hidden="true" data-lucide="sparkles" class="text-lg text-brand-600"></i><%= _boost.title %></h3>
+        <ul class="space-y-2 text-sm text-neutral-600">
+          <% for (const _b of (_boost.items || [])) { %><li class="flex gap-2"><i aria-hidden="true" data-lucide="check" class="mt-0.5 text-sm text-emerald-600"></i><%= _b %></li><% } %>
+        </ul>
+      </section>
+      <section class="card overflow-hidden" aria-label="<%= _prev.ariaLabel %>">
+        <div class="border-b border-neutral-200 px-5 py-3 text-sm font-semibold text-neutral-700"><%= _prev.title %></div>
+        <img src="<%= (it.images||[])[0] || it.placeholder %>" alt="<%= _prev.imgAlt %>" class="h-40 w-full object-cover" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+        <div class="p-4"><p class="item-title line-clamp-1"><%= _prev.heading %></p><p class="price mt-1 text-brand-600"><%= _prev.price %></p></div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function () {
+  var w = document.getElementById('publishWizard');
+  if (!w) { return; }
+  var toArr = function (n) { return Array.prototype.slice.call(n); };
+  var panels = toArr(w.querySelectorAll('[data-panel]'));
+  var steps = toArr(w.querySelectorAll('[data-goto]'));
+  var prevBtns = toArr(w.querySelectorAll('[data-prev]'));
+  var nextBtns = toArr(w.querySelectorAll('[data-next]'));
+  var status = w.querySelector('[data-status]');
+  var last = panels.length - 1;
+
+  function show(i) {
+    i = Math.max(0, Math.min(last, i));
+    panels.forEach(function (p) {
+      p.classList.toggle('hidden', Number(p.getAttribute('data-panel')) !== i);
+    });
+    steps.forEach(function (s) {
+      var on = Number(s.getAttribute('data-goto')) === i;
+      s.setAttribute('aria-current', on ? 'step' : 'false');
+      var dot = s.querySelector('[data-dot]');
+      var label = s.querySelector('[data-label]');
+      if (dot) { dot.className = 'grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-semibold ' + (on ? 'bg-brand-600 text-white shadow-sm' : 'bg-neutral-100 text-neutral-500'); }
+      if (label) { label.className = 'whitespace-nowrap text-sm font-medium ' + (on ? 'text-neutral-900' : 'text-neutral-500'); }
+    });
+    nextBtns.forEach(function (b) { b.textContent = (i === last) ? '<%= it.copy.publish.desktop.nav.submit %>' : '<%= it.copy.publish.desktop.nav.next %>'; });
+    prevBtns.forEach(function (b) {
+      b.disabled = (i === 0);
+      b.className = 'btn btn-outline px-6 py-2.5' + (i === 0 ? ' opacity-50 cursor-not-allowed' : '');
+    });
+    if (status && i !== last) { status.classList.add('hidden'); }
+  }
+
+  steps.forEach(function (s) { s.addEventListener('click', function () { show(Number(s.getAttribute('data-goto'))); }); });
+  prevBtns.forEach(function (b) { b.addEventListener('click', function () { var c = w.querySelector('[data-panel]:not(.hidden)'); show((c ? Number(c.getAttribute('data-panel')) : 0) - 1); }); });
+  nextBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var c = w.querySelector('[data-panel]:not(.hidden)');
+      var i = c ? Number(c.getAttribute('data-panel')) : 0;
+      if (i === last) { if (status) { status.classList.remove('hidden'); } return; }
+      show(i + 1);
+    });
+  });
+
+  show(0);
+})();
+</script>

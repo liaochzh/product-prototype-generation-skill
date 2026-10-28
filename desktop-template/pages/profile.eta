@@ -1,0 +1,52 @@
+<section class="card overflow-hidden" aria-label="<%= it.copy.profile.desktop.ariaLabel.info %>">
+  <div class="h-32 bg-neutral-100"></div>
+  <div class="px-6 pb-5">
+    <div class="-mt-10 flex items-end gap-4">
+      <img src="<%= (it.images||[])[0] || it.placeholder %>" alt="<%= it.copy.profile.avatarAlt %>" class="h-20 w-20 rounded-2xl object-cover ring-4 ring-white shadow-sm" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+      <div class="flex-1 pb-1">
+        <h2 class="hero-title text-neutral-900"><%= it.copy.profile.name %></h2>
+        <p class="text-sm text-neutral-500"><%= it.copy.profile.metaLine %><% if (it.copy.profile.rating) { %> <span class="font-semibold text-amber-600"><%= it.copy.profile.rating %></span><% } %></p>
+      </div>
+      <button class="btn btn-outline mb-1"><i data-lucide="pencil" class="mr-2 text-base"></i><%= it.copy.profile.editLabel %></button>
+    </div>
+    <div class="mt-5 grid grid-cols-4 gap-3">
+      <% for (const _s of (it.copy.profile.desktop.stats || [])) { %>
+        <div class="rounded-xl bg-neutral-50 py-3 text-center"><p class="stat-value text-neutral-900"><%= _s.value %></p><p class="meta text-neutral-500"><%= _s.label %></p></div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+  <section class="card overflow-hidden divide-y divide-neutral-100" aria-label="<%= it.copy.profile.ariaLabel.menus %>">
+    <% const _menus = it.copy.profile.desktop.menus || []; %>
+    <% const MENU_BASE = 'flex items-center gap-3 px-4 py-3.5'; %>
+    <% for (const _m of _menus) { const _href = it.link(_m.target); %>
+      <% if (_href !== '#') { %>
+        <a href="<%= _href %>" class="<%= MENU_BASE %> transition hover:bg-neutral-50"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="<%= _m.icon %>" class="text-lg"></i></span><div class="min-w-0 flex-1"><p class="item-title text-neutral-900"><%= _m.title %></p><p class="meta text-neutral-500"><%= _m.sub %></p></div><i data-lucide="chevron-right" class="text-neutral-300 text-base"></i></a>
+      <% } else { %>
+        <div class="<%= MENU_BASE %> cursor-not-allowed opacity-60" aria-disabled="true"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-100 text-neutral-400"><i data-lucide="<%= _m.icon %>" class="text-lg"></i></span><div class="min-w-0 flex-1"><p class="item-title text-neutral-500"><%= _m.title %></p><p class="meta text-neutral-400"><%= _m.sub %></p></div><span class="rounded-full bg-neutral-100 px-2 py-0.5 text-micro text-neutral-400"><%= it.copy.profile.desktop.comingSoon %></span></div>
+      <% } %>
+    <% } %>
+  </section>
+
+  <div class="space-y-4 lg:col-span-2">
+    <section class="card overflow-hidden" aria-label="<%= it.copy.profile.ariaLabel.recentOrders %>">
+      <div class="flex items-center justify-between border-b border-neutral-200 px-5 py-4"><h3 class="section-title"><%= it.copy.profile.recentOrders.title %></h3><a href="<%= it.link('orders','home') %>" class="text-xs font-medium text-brand-600"><%= it.copy.profile.recentOrders.more %></a></div>
+      <div class="divide-y divide-neutral-100">
+        <% const _recent = it.copy.profile.recentOrders.rows || []; for (let _oi = 0; _oi < _recent.length; _oi++) { const _o = _recent[_oi]; %>
+          <div class="flex items-center gap-3 px-5 py-3.5"><img src="<%= it.pick(_oi) %>" alt="" class="h-11 w-11 rounded-lg object-cover ring-1 ring-neutral-200" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" /><div class="min-w-0 flex-1"><p class="item-title text-neutral-900 line-clamp-1"><%= _o.name %></p><p class="meta text-neutral-500"><%= _o.value %></p></div><span class="badge <%= it.tone(_o.tone) %>"><%= _o.status %></span></div>
+        <% } %>
+      </div>
+    </section>
+
+    <section class="card p-5" aria-label="<%= it.copy.profile.ariaLabel.favorites %>">
+      <div class="mb-3 flex items-center justify-between"><h3 class="section-title"><%= it.copy.profile.favoritesTitle %></h3><a href="<%= it.link('list','home') %>" class="text-xs font-medium text-brand-600"><%= it.copy.ux.viewAll %></a></div>
+      <div class="grid grid-cols-3 gap-3 sm:grid-cols-4">
+        <% for (let _i = 0; _i < 3; _i++) { %>
+          <a href="<%= it.link('detail','list','home') %>" class="group overflow-hidden rounded-xl ring-1 ring-neutral-200" aria-label="<%= it.copy.profile.desktop.favoritesAlt %> <%= _i + 1 %>"><img src="<%= (it.images||[])[_i % ((it.images||[]).length || 1)] || it.placeholder %>" alt="<%= it.copy.profile.desktop.favoritesAlt %>" loading="lazy" class="h-24 w-full object-cover transition group-hover:scale-105" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" /></a>
+        <% } %>
+      </div>
+    </section>
+  </div>
+</div>

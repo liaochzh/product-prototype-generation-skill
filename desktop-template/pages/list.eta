@@ -1,0 +1,48 @@
+<div class="card mb-4 flex flex-wrap items-center gap-3 p-3">
+  <div class="relative min-w-56 max-w-md flex-1">
+    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-base"></i>
+    <input class="input pl-9" placeholder="<%= it.copy.list.table.searchPlaceholder %>" aria-label="<%= it.copy.search.ariaLabel %>" />
+  </div>
+  <% for (const _flt of (it.copy.list.table.filters || [])) { %>
+    <select class="input w-40" aria-label="<%= _flt.ariaLabel %>"><% for (const _o of (_flt.options || [])) { %><option><%= _o %></option><% } %></select>
+  <% } %>
+  <button class="btn btn-primary ml-auto px-4" aria-label="<%= it.copy.list.table.newAriaLabel %>"><i data-lucide="plus" class="mr-2 text-base"></i><%= it.copy.list.table.newLabel %></button>
+</div>
+<section class="card overflow-hidden" aria-label="<%= it.copy.list.table.ariaLabel %>">
+  <table class="w-full text-sm">
+    <thead><tr class="bg-neutral-50/80 text-neutral-500">
+      <% for (const _c of (it.copy.list.table.cols || [])) { %>
+        <th scope="col" class="text-left px-5 py-3 font-medium"><%= _c.label %></th>
+      <% } %>
+    </tr></thead>
+    <tbody class="divide-y divide-neutral-200">
+      <% /* 表格为 7 列固定骨架：列宽样式属布局常量（非领域文案），集中在此避免散落 */ %>
+      <% const _tdCls = ['px-5 py-4', 'px-5 py-4', 'px-5 py-4 item-title text-neutral-900', 'px-5 py-4 text-neutral-600', 'px-5 py-4', 'px-5 py-4 text-neutral-500', 'px-5 py-4']; %>
+      <% const _catTone = it.tone(it.copy.list.table.categoryTone); %>
+      <% const _cols = it.copy.list.table.cols || []; const _rowLen = _cols.length; %>
+      <% const _rows = it.copy.list.table.rows || []; for (let _ri = 0; _ri < _rows.length; _ri++) { const _r = _rows[_ri]; %>
+        <tr class="transition hover:bg-neutral-50">
+          <% for (let _ci = 0; _ci < _rowLen; _ci++) { const _cell = (_r.cells || [])[_ci]; %>
+          <td class="<%= _tdCls[_ci] || 'px-5 py-4' %>">
+            <% if (_ci === 0) { %>
+              <div class="flex items-center gap-3"><img src="<%= it.pick(_ri) %>" alt="" class="h-11 w-11 rounded-lg object-cover ring-1 ring-neutral-200" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" /><div><p class="item-title text-neutral-900"><%= _cell %></p><% /* 行号派生 ID：恰好 6 位（命中 golden 归一化 SPU_PATTERN），且同输入两次生成字节一致 */ %><p class="meta text-neutral-400">ID: <%= it.copy.list.table.idPrefix %><%= (1000 + _ri).toString(36).padStart(6, '0') %></p></div></div>
+            <% } else if (_ci === 1) { %>
+              <span class="badge <%= _catTone %>"><%= _cell %></span>
+            <% } else if (_ci === 4) { %>
+              <span class="badge <%= it.tone(_r.badge && _r.badge.tone) %>"><%= _cell %></span>
+            <% } else if (_ci === 6) { %>
+              <div class="flex gap-1"><button class="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 transition hover:bg-neutral-100" title="编辑"><i data-lucide="pencil" class="text-base"></i></button><button class="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 transition hover:bg-neutral-100" title="复制"><i data-lucide="copy" class="text-base"></i></button><button class="grid h-8 w-8 place-items-center rounded-lg text-rose-500 transition hover:bg-rose-50" title="删除"><i data-lucide="trash-2" class="text-base"></i></button></div>
+            <% } else { %>
+              <%= _cell %>
+            <% } %>
+          </td>
+          <% } %>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+  <div class="flex items-center justify-between border-t border-neutral-200 px-5 py-3.5">
+    <p class="text-sm text-neutral-500"><%= it.copy.list.table.totalLabel %></p>
+    <div class="flex gap-1.5"><button class="btn btn-outline h-8 px-3 text-xs" disabled><%= it.copy.ux.prev %></button><button class="btn btn-primary h-8 px-3 text-xs">1</button><button class="btn btn-outline h-8 px-3 text-xs">2</button><button class="btn btn-outline h-8 px-3 text-xs">3</button><button class="btn btn-outline h-8 px-3 text-xs"><%= it.copy.ux.next %></button></div>
+  </div>
+</section>

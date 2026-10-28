@@ -1,0 +1,39 @@
+<div class="min-h-full bg-neutral-50 pb-28">
+  <header class="sticky top-0 z-10 px-5 pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
+    <p class="eyebrow text-brand-600"><%= it.meta.productName %></p>
+    <h2 class="page-title mt-1 text-neutral-900"><%= it.copy.discover.title %></h2>
+    <div class="mt-3 flex items-center gap-2.5 rounded-2xl bg-white px-4 h-11 shadow-sm ring-1 ring-neutral-200/70">
+      <i data-lucide="search" class="text-neutral-400 text-lg"></i>
+      <input class="flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400" placeholder="<%= it.copy.discover.searchPlaceholder %>" aria-label="<%= it.copy.search.ariaLabel %>" />
+    </div>
+  </header>
+  <main class="px-4 pt-4 space-y-4">
+    <section aria-label="分类筛选" class="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
+      <% const _cats = it.copy.discover.mobileCats || it.copy.discover.cats || []; %>
+      <% for (const _c of _cats) { %>
+        <button aria-pressed="<%= _c===_cats[0] ? 'true' : 'false' %>" class="shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs font-medium transition <%= _c===_cats[0] ? 'bg-brand-600 text-white shadow-sm' : 'bg-white text-neutral-600 ring-1 ring-neutral-200/70' %>"><%= _c %></button>
+      <% } %>
+    </section>
+    <section class="grid grid-cols-2 gap-3" aria-label="<%= it.copy.discover.ariaLabel %>">
+      <% const _books = (it.images||[]).slice(0, 6); %>
+      <% for (let _i = 0; _i < _books.length; _i++) { %>
+        <% const _src = _books[_i]; %>
+        <a href="<%= it.link('detail','list','home') %>" class="card overflow-hidden active:scale-95 transition">
+          <img src="<%= _src %>" alt="<%= it.copy.discover.cardImgAlt %>" loading="lazy" class="h-48 w-full object-cover" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+          <div class="p-3">
+            <h3 class="item-title line-clamp-1"><%= it.copy.discover.cardName(_i) %></h3>
+            <p class="meta mt-0.5"><%= it.copy.discover.cardMeta %></p>
+            <p class="price mt-1.5 text-brand-600"><%= it.copy.discover.cardSecondary(_i) %></p>
+          </div>
+        </a>
+      <% } %>
+    </section>
+    <div class="flex items-center justify-center gap-2 py-2 text-sm">
+      <button class="chip"><%= it.copy.ux.prev %></button>
+      <button class="rounded-full bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm">1</button>
+      <button class="chip">2</button>
+      <button class="chip">3</button>
+      <button class="chip"><%= it.copy.ux.next %></button>
+    </div>
+  </main>
+</div>

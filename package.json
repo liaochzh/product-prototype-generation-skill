@@ -1,0 +1,26 @@
+{
+  "name": "product-prototype-generation",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "从产品需求到可交互原型的完整工作流",
+  "scripts": {
+    "prd": "node scripts/generate-prd.js",
+    "prototype": "node scripts/generate-prototype.js",
+    "verify": "node scripts/verify-prototype.js",
+    "clean": "node scripts/clean.js",
+    "selfcheck": "node scripts/selfcheck.js",
+    "freeze-golden": "node scripts/freeze-golden.js",
+    "eval": "node scripts/eval-runner.js"
+  },
+  "dependencies": {
+    "consola": "^3.2.0",
+    "eta": "^3.4.0"
+  },
+  "devDependencies": {
+    "chokidar": "^3.6.0",
+    "playwright-core": "^1.64.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

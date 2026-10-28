@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="云集商城高保真可交互原型">
+  <meta name="theme-color" content="hsl(158, 74%, 35%)">
+  <title>云集商城原型</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>window.addEventListener('DOMContentLoaded',function(){window.lucide&&window.lucide.createIcons();});</script>
+  <script>
+  tailwind.config = {
+  "content": [],
+  "theme": {
+    "extend": {
+      "colors": {
+        "brand": {
+          "50": "hsl(158, 64%, 92%)",
+          "100": "hsl(158, 64%, 87%)",
+          "200": "hsl(158, 64%, 77%)",
+          "300": "hsl(158, 64%, 67%)",
+          "400": "hsl(158, 64%, 57%)",
+          "500": "hsl(158, 64%, 42%)",
+          "600": "hsl(158, 74%, 35%)",
+          "700": "hsl(158, 79%, 30%)",
+          "800": "hsl(158, 84%, 25%)",
+          "900": "hsl(158, 89%, 20%)",
+          "950": "hsl(158, 90%, 15%)"
+        },
+        "success": {
+          "50": "hsl(142, 76%, 86%)",
+          "100": "hsl(142, 76%, 81%)",
+          "200": "hsl(142, 76%, 71%)",
+          "300": "hsl(142, 76%, 61%)",
+          "400": "hsl(142, 76%, 51%)",
+          "500": "hsl(142, 76%, 36%)",
+          "600": "hsl(142, 86%, 35%)",
+          "700": "hsl(142, 90%, 30%)",
+          "800": "hsl(142, 90%, 25%)",
+          "900": "hsl(142, 90%, 20%)",
+          "950": "hsl(142, 90%, 15%)"
+        },
+        "warning": {
+          "50": "hsl(38, 92%, 95%)",
+          "100": "hsl(38, 92%, 90%)",
+          "200": "hsl(38, 92%, 80%)",
+          "300": "hsl(38, 92%, 70%)",
+          "400": "hsl(38, 92%, 60%)",
+          "500": "hsl(38, 92%, 50%)",
+          "600": "hsl(38, 90%, 40%)",
+          "700": "hsl(38, 90%, 35%)",
+          "800": "hsl(38, 90%, 30%)",
+          "900": "hsl(38, 90%, 25%)",
+          "950": "hsl(38, 90%, 20%)"
+        },
+        "error": {
+          "50": "hsl(0, 84%, 95%)",
+          "100": "hsl(0, 84%, 90%)",
+          "200": "hsl(0, 84%, 80%)",
+          "300": "hsl(0, 84%, 70%)",
+          "400": "hsl(0, 84%, 60%)",
+          "500": "hsl(0, 84%, 60%)",
+          "600": "hsl(0, 90%, 50%)",
+          "700": "hsl(0, 90%, 45%)",
+          "800": "hsl(0, 90%, 40%)",
+          "900": "hsl(0, 90%, 35%)",
+          "950": "hsl(0, 90%, 30%)"
+        },
+        "info": {
+          "50": "hsl(199, 89%, 95%)",
+          "100": "hsl(199, 89%, 90%)",
+          "200": "hsl(199, 89%, 80%)",
+          "300": "hsl(199, 89%, 70%)",
+          "400": "hsl(199, 89%, 60%)",
+          "500": "hsl(199, 89%, 48%)",
+          "600": "hsl(199, 90%, 38%)",
+          "700": "hsl(199, 90%, 33%)",
+          "800": "hsl(199, 90%, 28%)",
+          "900": "hsl(199, 90%, 23%)",
+          "950": "hsl(199, 90%, 18%)"
+        },
+        "neutral": {
+          "50": "hsl(220, 20%, 98%)",
+          "100": "hsl(220, 17%, 95%)",
+          "200": "hsl(220, 14%, 90%)",
+          "300": "hsl(220, 12%, 82%)",
+          "400": "hsl(220, 10%, 64%)",
+          "500": "hsl(220, 9%, 46%)",
+          "600": "hsl(220, 10%, 34%)",
+          "700": "hsl(220, 12%, 26%)",
+          "800": "hsl(220, 14%, 16%)",
+          "900": "hsl(220, 16%, 10%)",
+          "950": "hsl(220, 20%, 5%)"
+        },
+        "background": "neutral.50",
+        "surface": "white",
+        "surface-hover": "neutral.100",
+        "border": "neutral.200",
+        "border-hover": "neutral.300",
+        "text": "neutral.900",
+        "text-muted": "neutral.500",
+        "text-inverse": "white"
+      },
+      "fontFamily": {
+        "sans": [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "SF Pro Text",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif"
+        ],
+        "mono": [
+          "ui-monospace",
+          "SFMono-Regular",
+          "SF Mono",
+          "Menlo",
+          "Consolas",
+          "Liberation Mono",
+          "monospace"
+        ],
+        "display": [
+          "Playfair Display",
+          "Georgia",
+          "Songti SC",
+          "Cambria",
+          "Times New Roman",
+          "serif"
+        ]
+      },
+      "letterSpacing": {
+        "tighter": "-0.03em",
+        "tight": "-0.02em",
+        "normal": "0em",
+        "wide": "0.02em",
+        "wider": "0.05em",
+        "widest": "0.14em"
+      },
+      "fontSize": {
+        "micro": [
+          "0.6875rem",
+          {
+            "lineHeight": "1.4"
+          }
+        ],
+        "xs": [
+          "0.75rem",
+          {
+            "lineHeight": "1.5"
+          }
+        ],
+        "sm": [
+          "0.875rem",
+          {
+            "lineHeight": "1.5"
+          }
+        ],
+        "base": [
+          "1rem",
+          {
+            "lineHeight": "1.6"
+          }
+        ],
+        "lg": [
+          "1.125rem",
+          {
+            "lineHeight": "1.55"
+          }
+        ],
+        "xl": [
+          "1.25rem",
+          {
+            "lineHeight": "1.5",
+            "letterSpacing": "-0.01em"
+          }
+        ],
+        "2xl": [
+          "1.5rem",
+          {
+            "lineHeight": "1.35",
+            "letterSpacing": "-0.015em"
+          }
+        ],
+        "3xl": [
+          "1.875rem",
+          {
+            "lineHeight": "1.25",
+            "letterSpacing": "-0.02em"
+          }
+        ],
+        "4xl": [
+          "2.25rem",
+          {
+            "lineHeight": "1.15",
+            "letterSpacing": "-0.022em"
+          }
+        ],
+        "5xl": [
+          "3rem",
+          {
+            "lineHeight": "1.08",
+            "letterSpacing": "-0.024em"
+          }
+        ],
+        "6xl": [
+          "3.75rem",
+          {
+            "lineHeight": "1.02",
+            "letterSpacing": "-0.025em"
+          }
+        ]
+      },
+      "lineHeight": {
+        "tight": "1.25",
+        "normal": "1.5",
+        "relaxed": "1.6",
+        "loose": "2"
+      },
+      "spacing": {
+        "0": "0",
+        "1": "0.25rem",
+        "2": "0.5rem",
+        "3": "0.75rem",
+        "4": "1rem",
+        "5": "1.25rem",
+        "6": "1.5rem",
+        "8": "2rem",
+        "10": "2.5rem",
+        "12": "3rem",
+        "16": "4rem",
+        "20": "5rem",
+        "24": "6rem"
+      },
+      "borderRadius": {
+        "none": "0",
+        "sm": "0.25rem",
+        "md": "0.375rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
+        "4xl": "2rem",
+        "full": "9999px"
+      },
+      "boxShadow": {
+        "xs": "0 1px 2px 0 rgb(15 23 42 / 0.04)",
+        "sm": "0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.04)",
+        "md": "0 2px 4px -1px rgb(15 23 42 / 0.05), 0 4px 10px -2px rgb(15 23 42 / 0.05)",
+        "lg": "0 4px 8px -2px rgb(15 23 42 / 0.06), 0 12px 22px -6px rgb(15 23 42 / 0.08)",
+        "xl": "0 8px 16px -4px rgb(15 23 42 / 0.07), 0 22px 36px -10px rgb(15 23 42 / 0.10)",
+        "2xl": "0 16px 32px -8px rgb(15 23 42 / 0.10), 0 36px 60px -16px rgb(15 23 42 / 0.13)",
+        "inner": "inset 0 1px 2px 0 rgb(15 23 42 / 0.05)",
+        "card-hover": "0 10px 22px -8px rgb(15 23 42 / 0.12), 0 4px 8px -4px rgb(15 23 42 / 0.07)",
+        "modal": "0 30px 60px -12px rgb(15 23 42 / 0.22), 0 14px 24px -8px rgb(15 23 42 / 0.10)"
+      },
+      "backdropBlur": {
+        "none": "0",
+        "sm": "4px",
+        "md": "12px",
+        "lg": "16px",
+        "xl": "24px",
+        "2xl": "40px",
+        "3xl": "64px"
+      },
+      "screens": {
+        "sm": "640px",
+        "md": "768px",
+        "lg": "1024px",
+        "xl": "1280px",
+        "2xl": "1536px"
+      },
+      "transitionDuration": {
+        "fast": "150ms",
+        "normal": "200ms",
+        "slow": "300ms",
+        "slower": "500ms"
+      },
+      "transitionTimingFunction": {
+        "ease-out": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "ease-in": "cubic-bezier(0.4, 0, 1, 1)",
+        "ease-in-out": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "spring": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+      },
+      "keyframes": {
+        "fade-in": {
+          "0%": {
+            "opacity": "0"
+          },
+          "100%": {
+            "opacity": "1"
+          }
+        },
+        "fade-out": {
+          "0%": {
+            "opacity": "1"
+          },
+          "100%": {
+            "opacity": "0"
+          }
+        },
+        "slide-up": {
+          "0%": {
+            "transform": "translateY(10px)",
+            "opacity": "0"
+          },
+          "100%": {
+            "transform": "translateY(0)",
+            "opacity": "1"
+          }
+        },
+        "slide-down": {
+          "0%": {
+            "transform": "translateY(-10px)",
+            "opacity": "0"
+          },
+          "100%": {
+            "transform": "translateY(0)",
+            "opacity": "1"
+          }
+        },
+        "scale-in": {
+          "0%": {
+            "transform": "scale(0.95)",
+            "opacity": "0"
+          },
+          "100%": {
+            "transform": "scale(1)",
+            "opacity": "1"
+          }
+        },
+        "spin": {
+          "0%": {
+            "transform": "rotate(0deg)"
+          },
+          "100%": {
+            "transform": "rotate(360deg)"
+          }
+        },
+        "pulse-soft": {
+          "0%, 100%": {
+            "opacity": "1"
+          },
+          "50%": {
+            "opacity": "0.7"
+          }
+        },
+        "shimmer": {
+          "0%": {
+            "backgroundPosition": "-200% 0"
+          },
+          "100%": {
+            "backgroundPosition": "200% 0"
+          }
+        },
+        "touch-feedback": {
+          "0%": {
+            "transform": "scale(1)"
+          },
+          "50%": {
+            "transform": "scale(0.96)"
+          },
+          "100%": {
+            "transform": "scale(1)"
+          }
+        }
+      },
+      "animation": {
+        "fade-in": "fade-in 200ms ease-out",
+        "fade-out": "fade-out 150ms ease-in",
+        "slide-up": "slide-up 300ms ease-out",
+        "slide-down": "slide-down 300ms ease-out",
+        "scale-in": "scale-in 200ms ease-out",
+        "spin": "spin 1s linear infinite",
+        "pulse-soft": "pulse-soft 2s ease-in-out infinite",
+        "shimmer": "shimmer 2s linear infinite",
+        "touch-feedback": "scale-in 100ms ease-out"
+      },
+      "zIndex": {
+        "dropdown": 100,
+        "sticky": 200,
+        "fixed": 300,
+        "modalBackdrop": 400,
+        "modal": 500,
+        "popover": 600,
+        "tooltip": 700,
+        "toast": 800
+      },
+      "typeRole": {
+        "pageTitle": {
+          "token": "2xl",
+          "weight": "700"
+        },
+        "navTitle": {
+          "token": "lg",
+          "weight": "600"
+        },
+        "heroTitle": {
+          "token": "xl",
+          "weight": "700"
+        },
+        "sectionTitle": {
+          "token": "base",
+          "weight": "600"
+        },
+        "itemTitle": {
+          "token": "base",
+          "weight": "600"
+        },
+        "price": {
+          "token": "lg",
+          "weight": "700"
+        },
+        "priceHero": {
+          "token": "2xl",
+          "weight": "700"
+        },
+        "statValue": {
+          "token": "lg",
+          "weight": "700"
+        },
+        "statHero": {
+          "token": "2xl",
+          "weight": "700"
+        },
+        "label": {
+          "token": "sm",
+          "weight": "500"
+        },
+        "meta": {
+          "token": "xs",
+          "weight": "400"
+        }
+      }
+    }
+  }
+,
+  "plugins": [
+    (function ({ addUtilities, addComponents, theme }) {
+        /**
+         * fontSize token 为 [size, { lineHeight, letterSpacing }] 数组形态，
+         * theme('fontSize.xs') 返回整个数组；直接赋给 fontSize 会生成
+         * `font-size: 0.75rem,1.5` 这样的非法 CSS 并被整条丢弃。
+         * 因此组件类里的字号必须经这两个助手解包，禁止再写裸字面量。
+         */
+        const typeSize = (key) => {
+          const v = theme(`fontSize.${key}`);
+          return Array.isArray(v) ? v[0] : v;
+        };
+        const typeLineHeight = (key) => {
+          const v = theme(`fontSize.${key}`);
+          return Array.isArray(v) ? (v[1] && v[1].lineHeight) || theme('lineHeight.normal') : theme('lineHeight.normal');
+        };
+
+        // 文本截断
+        addUtilities({
+          '.text-balance': { 'text-wrap': 'balance' },
+          '.line-clamp-1': { display: '-webkit-box', '-webkit-line-clamp': '1', '-webkit-box-orient': 'vertical', overflow: 'hidden' },
+          '.line-clamp-2': { display: '-webkit-box', '-webkit-line-clamp': '2', '-webkit-box-orient': 'vertical', overflow: 'hidden' },
+          '.line-clamp-3': { display: '-webkit-box', '-webkit-line-clamp': '3', '-webkit-box-orient': 'vertical', overflow: 'hidden' },
+        });
+
+        // 滚动条隐藏
+        addUtilities({
+          '.scrollbar-hide': {
+            '-ms-overflow-style': 'none',
+            'scrollbar-width': 'none',
+            '&::-webkit-scrollbar': { display: 'none' },
+          },
+        });
+
+        // 毛玻璃
+        addUtilities({
+          '.glass': {
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+          },
+          '.glass-dark': {
+            background: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+          },
+        });
+
+        // 排版与装饰工具类
+        // 语义排版角色：role → 解包后的 { fontSize, lineHeight, fontWeight }
+        // （token 来自 theme.typeRole，由 generateTailwindConfig 按平台注入）
+        const role = (name, letterSpacing) => {
+          const r = theme(`typeRole.${name}`) || {};
+          const token = r.token || 'base';
+          const out = {
+            fontSize: typeSize(token),
+            lineHeight: typeLineHeight(token),
+            fontWeight: r.weight || '400',
+          };
+          if (letterSpacing) out.letterSpacing = letterSpacing;
+          return out;
+        };
+        addUtilities({
+          // 眉标：大写、宽字距的小标签
+          '.eyebrow': {
+            fontSize: typeSize('micro'),
+            fontWeight: '600',
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            lineHeight: '1',
+          },
+          // ── 语义排版角色：同类元素一律引用，禁止再用裸 text-* 表达这些角色 ──
+          // 注意：这些类走 addUtilities（层叠后于核心 text-* utility），
+          // 故不再设置 color —— 否则会覆盖 `text-rose-600` 之类的颜色类；
+          // 默认颜色靠 layout body 的 text-neutral-900 继承。
+          '.page-title': role('pageTitle', '-0.015em'),
+          '.nav-title': role('navTitle', '-0.01em'),
+          '.hero-title': role('heroTitle', '-0.015em'),
+          '.section-title': role('sectionTitle', '-0.01em'),
+          '.item-title': role('itemTitle', '-0.005em'),
+          '.price': role('price'),
+          '.price-hero': role('priceHero', '-0.015em'),
+          '.stat-value': role('statValue', '-0.015em'),
+          '.stat-hero': role('statHero', '-0.015em'),
+          '.label': role('label'),
+          '.meta': role('meta'),
+          // 极细分割线
+          '.hairline': {
+            height: '1px',
+            background: theme('colors.neutral.200'),
+            border: 'none',
+          },
+          // 图片底部渐隐遮罩（用于图文叠加可读性）
+          '.hero-overlay': {
+            background: 'linear-gradient(to top, rgba(2,6,23,0.82) 0%, rgba(2,6,23,0.30) 45%, rgba(2,6,23,0) 100%)',
+          },
+          // 卡片悬停轻抬升
+          '.card-lift': {
+            transition: 'transform 250ms cubic-bezier(0.4,0,0.2,1), box-shadow 250ms cubic-bezier(0.4,0,0.2,1)',
+            '&:hover': { transform: 'translateY(-2px)', boxShadow: theme('boxShadow.lg') },
+          },
+          // 焦点环
+          '.focus-ring': {
+            outline: 'none',
+            '&:focus-visible': { outline: '2px solid', outlineOffset: '2px', outlineColor: theme('colors.brand.500') },
+          },
+        });
+
+        // 组件类
+        addComponents({
+          '.btn': {
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            fontWeight: '600',
+            fontSize: typeSize('sm'),
+            letterSpacing: '-0.005em',
+            borderRadius: theme('borderRadius.xl'),
+            transition: 'background-color 150ms ease-out, box-shadow 150ms ease-out, transform 120ms ease-out',
+            cursor: 'pointer',
+            border: 'none',
+            outline: 'none',
+            whiteSpace: 'nowrap',
+            '&:disabled': { opacity: '0.5', cursor: 'not-allowed' },
+            '&:focus-visible': { outline: '2px solid', outlineOffset: '2px', outlineColor: theme('colors.brand.500') },
+          },
+          '.btn-primary': {
+            backgroundColor: theme('colors.brand.600'),
+            color: 'white',
+            boxShadow: '0 1px 2px 0 rgb(15 23 42 / 0.12)',
+            '&:hover:not(:disabled)': { backgroundColor: theme('colors.brand.700'), boxShadow: '0 4px 10px -2px rgb(15 23 42 / 0.18)' },
+            '&:active:not(:disabled)': { backgroundColor: theme('colors.brand.800'), transform: 'translateY(1px)' },
+          },
+          '.btn-secondary': {
+            backgroundColor: theme('colors.neutral.100'),
+            color: theme('colors.neutral.900'),
+            '&:hover:not(:disabled)': { backgroundColor: theme('colors.neutral.200') },
+            '&:active:not(:disabled)': { backgroundColor: theme('colors.neutral.300') },
+          },
+          '.btn-ghost': {
+            backgroundColor: 'transparent',
+            color: theme('colors.neutral.700'),
+            '&:hover:not(:disabled)': { backgroundColor: theme('colors.neutral.100') },
+            '&:active:not(:disabled)': { backgroundColor: theme('colors.neutral.200') },
+          },
+          '.btn-outline': {
+            backgroundColor: 'white',
+            border: `1px solid ${theme('colors.neutral.200')}`,
+            color: theme('colors.neutral.800'),
+            '&:hover:not(:disabled)': { borderColor: theme('colors.neutral.300'), backgroundColor: theme('colors.neutral.50') },
+          },
+          '.input': {
+            width: '100%',
+            padding: '0.625rem 0.875rem',
+            fontSize: typeSize('sm'),
+            lineHeight: typeLineHeight('sm'),
+            color: theme('colors.neutral.900'),
+            backgroundColor: 'white',
+            border: `1px solid ${theme('colors.neutral.200')}`,
+            borderRadius: theme('borderRadius.xl'),
+            transition: 'border-color 150ms ease-out, box-shadow 150ms ease-out',
+            boxShadow: '0 1px 2px 0 rgb(15 23 42 / 0.03)',
+            '&:focus': { outline: 'none', borderColor: theme('colors.brand.400'), boxShadow: `0 0 0 3px ${theme('colors.brand.100')}` },
+            '&::placeholder': { color: theme('colors.neutral.400') },
+            '&:disabled': { backgroundColor: theme('colors.neutral.100'), cursor: 'not-allowed' },
+          },
+          '.card': {
+            backgroundColor: 'white',
+            borderRadius: theme('borderRadius.2xl'),
+            boxShadow: theme('boxShadow.sm'),
+            border: `1px solid ${theme('colors.neutral.200')}`,
+            transition: 'box-shadow 220ms cubic-bezier(0.4,0,0.2,1), border-color 220ms ease-out, transform 220ms cubic-bezier(0.4,0,0.2,1)',
+            '&:hover': { boxShadow: theme('boxShadow.lg'), borderColor: theme('colors.neutral.300') },
+          },
+          '.badge': {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+            padding: '0.1875rem 0.5rem',
+            fontSize: typeSize('micro'),
+            fontWeight: '600',
+            lineHeight: typeLineHeight('micro'),
+            borderRadius: theme('borderRadius.full'),
+          },
+          // 涨跌/变化量胶囊（数值型 delta）。WHY 与 .badge（micro=11、600）分开：
+          // 它承载的是带图标的数值对比短语（`+18.3% 环比`），档位为 xs=12、字重 500，
+          // 两页（desktop home/dashboard）此前各自写死 `rounded-full px-2 py-0.5 text-xs font-medium`
+          // —— 形似 .badge 而档位不同，属「未被契约覆盖的同值重复」，本轮收纳为独立组件类。
+          // 不设 color：颜色由调用方的语义色类（text-rose-600 / text-emerald-600）决定。
+          '.delta': {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+            padding: '0.125rem 0.5rem',
+            fontSize: typeSize('xs'),
+            fontWeight: '500',
+            lineHeight: typeLineHeight('xs'),
+            borderRadius: theme('borderRadius.full'),
+          },
+          // 柔性胶囊标签（品牌色调）
+          '.chip': {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+            padding: '0.3125rem 0.75rem',
+            fontSize: typeSize('xs'),
+            fontWeight: '500',
+            color: theme('colors.neutral.600'),
+            backgroundColor: theme('colors.neutral.100'),
+            borderRadius: theme('borderRadius.full'),
+            border: `1px solid ${theme('colors.neutral.200')}`,
+            transition: 'background-color 150ms ease-out, color 150ms ease-out',
+            '&:hover': { backgroundColor: theme('colors.neutral.200'), color: theme('colors.neutral.800') },
+          },
+          // 统计块
+          '.stat': {
+            backgroundColor: 'white',
+            borderRadius: theme('borderRadius.2xl'),
+            border: `1px solid ${theme('colors.neutral.200')}`,
+            boxShadow: theme('boxShadow.sm'),
+            padding: '1.25rem',
+          },
+        });
+      })
+  ]
+};
+</script>
+  <style>
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, SF Pro Text, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+    ::selection { background-color: hsl(158, 64%, 77%); color: hsl(158, 89%, 20%); }
+    .lucide { width: 1em; height: 1em; display: inline-block; vertical-align: -0.125em; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: hsl(220, 12%, 82%); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: hsl(220, 10%, 64%); }
+  </style></head>
+<body class="bg-neutral-50 text-neutral-900 antialiased" style="min-height:100vh">
+<div class="min-h-full bg-neutral-50 pb-28">
+  <header class="sticky top-0 z-10 px-5 pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
+    <p class="eyebrow text-brand-600">云集商城</p>
+    <h2 class="page-title mt-1 text-neutral-900">个人中心</h2>
+    <a href="home.html" class="absolute right-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="设置"><i data-lucide="settings" class="text-lg"></i></a>
+  </header>
+  <main class="px-4 pt-4 space-y-4">
+    <section class="card p-4" aria-label="用户信息">
+      <div class="flex items-center gap-4">
+        <img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&amp;fit=crop&amp;q=80&amp;crop=entropy&amp;w=800&amp;h=600" alt="头像" class="h-20 w-20 rounded-full object-cover ring-2 ring-white shadow-md" onerror="this.onerror=null;this.src='data:image/svg+xml,%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22300%22%20viewBox%3D%220%200%20400%20300%22%3E%0A%20%20%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22hsl(158%2C%2064%25%2C%2082%25)%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2260%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.15%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2240%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.25%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2220%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.4%22%2F%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2265%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2218%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.7%22%3Eplaceholder%3C%2Ftext%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2272%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2212%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.5%22%3E%E5%9B%BE%E7%89%87%E5%8D%A0%E4%BD%8D%3C%2Ftext%3E%0A%3C%2Fsvg%3E%0A'" />
+        <div class="flex-1 min-w-0">
+          <h3 class="hero-title text-neutral-900">书虫小站</h3>
+          <p class="mt-0.5 text-sm text-neutral-500">ID: 888888 · 信誉 <span class="font-semibold text-amber-600">4.9</span></p>
+          <div class="mt-2.5 flex gap-4 text-sm">
+                                          <a href="orders.html" class="text-neutral-600"><span class="stat-value text-neutral-900">12</span> <span class="meta">订单</span></a>
+                                                        <a href="list.html" class="text-neutral-600"><span class="stat-value text-neutral-900">8</span> <span class="meta">在售</span></a>
+                                                        <span aria-disabled="true" class="text-neutral-600 opacity-60"><span class="stat-value text-neutral-900">156</span> <span class="meta">粉丝</span></span>
+                                    </div>
+        </div>
+      </div>
+    </section>
+    <section class="grid grid-cols-4 gap-2" aria-label="资产快捷">
+                    <div aria-disabled="true" class="flex flex-col items-center gap-1.5 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-neutral-200/70 opacity-70">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="wallet" class="text-lg"></i></span>
+          <span class="text-xs font-medium text-neutral-700">钱包</span>
+          <span class="text-xs text-neutral-400">¥1,280</span>
+        </div>
+              <div aria-disabled="true" class="flex flex-col items-center gap-1.5 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-neutral-200/70 opacity-70">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="ticket" class="text-lg"></i></span>
+          <span class="text-xs font-medium text-neutral-700">优惠券</span>
+          <span class="text-xs text-neutral-400">3 张</span>
+        </div>
+              <div aria-disabled="true" class="flex flex-col items-center gap-1.5 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-neutral-200/70 opacity-70">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="heart" class="text-lg"></i></span>
+          <span class="text-xs font-medium text-neutral-700">收藏</span>
+          <span class="text-xs text-neutral-400">24</span>
+        </div>
+              <div aria-disabled="true" class="flex flex-col items-center gap-1.5 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-neutral-200/70 opacity-70">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="package-open" class="text-lg"></i></span>
+          <span class="text-xs font-medium text-neutral-700">在售</span>
+          <span class="text-xs text-neutral-400">8</span>
+        </div>
+          </section>
+    <section class="card overflow-hidden divide-y divide-neutral-100" aria-label="功能菜单">
+                                      <a href="orders.html" class="flex items-center gap-3 px-4 py-3.5 transition active:bg-neutral-50"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="receipt" class="text-lg"></i></span><div class="flex-1 min-w-0"><p class="item-title text-neutral-900">我的订单</p><p class="meta">查看所有订单</p></div><i data-lucide="chevron-right" class="text-neutral-300"></i></a>
+                                        <a href="list.html" class="flex items-center gap-3 px-4 py-3.5 transition active:bg-neutral-50"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="package-open" class="text-lg"></i></span><div class="flex-1 min-w-0"><p class="item-title text-neutral-900">发布管理</p><p class="meta">管理在售/已售商品</p></div><i data-lucide="chevron-right" class="text-neutral-300"></i></a>
+                                        <a href="chat.html" class="flex items-center gap-3 px-4 py-3.5 transition active:bg-neutral-50"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="message-circle" class="text-lg"></i></span><div class="flex-1 min-w-0"><p class="item-title text-neutral-900">消息中心</p><p class="meta">买家卖家沟通</p></div><i data-lucide="chevron-right" class="text-neutral-300"></i></a>
+                                        <div class="flex items-center gap-3 px-4 py-3.5 opacity-60" aria-disabled="true"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="heart" class="text-lg"></i></span><div class="flex-1 min-w-0"><p class="item-title text-neutral-500">收藏夹</p><p class="meta">我收藏的好物</p></div><i data-lucide="chevron-right" class="text-neutral-300"></i></div>
+                                        <div class="flex items-center gap-3 px-4 py-3.5 opacity-60" aria-disabled="true"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="wallet" class="text-lg"></i></span><div class="flex-1 min-w-0"><p class="item-title text-neutral-500">我的钱包</p><p class="meta">余额/提现/账单</p></div><i data-lucide="chevron-right" class="text-neutral-300"></i></div>
+                                        <div class="flex items-center gap-3 px-4 py-3.5 opacity-60" aria-disabled="true"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="ticket" class="text-lg"></i></span><div class="flex-1 min-w-0"><p class="item-title text-neutral-500">优惠券</p><p class="meta">可用 3 张</p></div><i data-lucide="chevron-right" class="text-neutral-300"></i></div>
+                  </section>
+    <section class="card overflow-hidden divide-y divide-neutral-100" aria-label="设置与帮助">
+                                <div class="flex items-center gap-3 px-4 py-3.5 opacity-60" aria-disabled="true"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-100 text-neutral-500"><i data-lucide="settings" class="text-lg"></i></span><div class="flex-1 min-w-0"><p class="item-title text-neutral-500">设置</p><p class="meta">通用/通知/隐私</p></div><i data-lucide="chevron-right" class="text-neutral-300"></i></div>
+                                        <div class="flex items-center gap-3 px-4 py-3.5 opacity-60" aria-disabled="true"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-100 text-neutral-500"><i data-lucide="circle-help" class="text-lg"></i></span><div class="flex-1 min-w-0"><p class="item-title text-neutral-500">帮助与反馈</p><p class="meta">常见问题/联系客服</p></div><i data-lucide="chevron-right" class="text-neutral-300"></i></div>
+                                        <div class="flex items-center gap-3 px-4 py-3.5 opacity-60" aria-disabled="true"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-100 text-neutral-500"><i data-lucide="info" class="text-lg"></i></span><div class="flex-1 min-w-0"><p class="item-title text-neutral-500">关于我们</p><p class="meta">版本 1.0.0</p></div><i data-lucide="chevron-right" class="text-neutral-300"></i></div>
+                  </section>
+    <button class="btn btn-secondary w-full py-3 active:scale-95">退出登录</button>
+  </main>
+</div><nav class="fixed bottom-4 inset-x-6 z-20 bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl rounded-3xl px-6 py-3 flex justify-between" aria-label="底部导航"><a href="home.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="house" class="text-xl"></i>首页</a><a href="discover.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="compass" class="text-xl"></i>发现</a><a href="publish.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="circle-plus" class="text-xl"></i>发布</a><a href="chat.html" class="flex flex-col items-center gap-1 text-xs font-medium text-neutral-500 active:scale-95 transition"><i data-lucide="message-circle" class="text-xl"></i>消息</a><a href="profile.html" aria-current="page" class="flex flex-col items-center gap-1 text-xs font-medium text-brand-600 active:scale-95 transition"><i data-lucide="user-round" class="text-xl"></i>我的</a></nav></body>
+</html>

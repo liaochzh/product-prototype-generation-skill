@@ -1,0 +1,49 @@
+<div class="mx-auto max-w-3xl space-y-6">
+  <section class="card p-6" aria-label="<%= it.copy.settings.account.ariaLabel %>">
+    <h2 class="section-title mb-5 flex items-center gap-2.5"><span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><i data-lucide="<%= it.copy.settings.account.icon %>" class="text-lg"></i></span><%= it.copy.settings.account.ariaLabel %></h2>
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <div class="flex items-center gap-5 md:col-span-2">
+        <img src="<%= (it.images||[])[0] || it.placeholder %>" alt="<%= it.copy.settings.account.avatarAlt %>" class="h-20 w-20 rounded-full object-cover ring-2 ring-white shadow-sm" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+        <div><button class="btn btn-outline mb-2"><%= it.copy.settings.account.avatarBtn %></button><p class="meta text-neutral-500"><%= it.copy.settings.account.avatarHint %></p></div>
+      </div>
+      <% for (const _f of (it.copy.settings.account.fields || [])) { %>
+        <div class="<%= _f.kind === 'textarea' ? 'md:col-span-2' : '' %>">
+          <label for="<%= _f.id %>" class="mb-1 block label text-neutral-600"><%= _f.label %></label>
+          <% if (_f.kind === 'textarea') { %>
+            <textarea id="<%= _f.id %>" class="input min-h-[80px]" placeholder="<%= _f.placeholder %>"<% if (_f.hint) { %> aria-describedby="<%= _f.id %>-help"<% } %> <%= _f.disabled ? 'disabled' : '' %>><%= _f.value %></textarea>
+          <% } else { %>
+            <input id="<%= _f.id %>" class="input" value="<%= _f.value %>"<% if (_f.hint) { %> aria-describedby="<%= _f.id %>-help"<% } %> <%= _f.disabled ? 'disabled' : '' %> />
+          <% } %>
+          <% if (_f.hint) { %><p id="<%= _f.id %>-help" class="meta mt-1 text-neutral-500"><%= _f.hint %></p><% } %>
+        </div>
+      <% } %>
+    </div>
+    <button class="btn btn-primary mt-5 px-6"><%= it.copy.settings.account.submit %></button>
+  </section>
+  <section class="card p-6" aria-label="<%= it.copy.settings.notifs.ariaLabel %>">
+    <h2 class="section-title mb-5 flex items-center gap-2.5"><span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><i data-lucide="<%= it.copy.settings.notifs.icon %>" class="text-lg"></i></span><%= it.copy.settings.notifs.ariaLabel %></h2>
+    <div class="space-y-1">
+      <% for (const _n of (it.copy.settings.notifs.rows || [])) { %>
+        <label class="flex cursor-pointer items-center justify-between rounded-xl p-3 transition hover:bg-neutral-50"><div><p class="item-title text-neutral-800"><%= _n.label %></p><p class="meta text-neutral-500"><%= _n.desc %></p></div><input type="checkbox" class="h-5 w-5 rounded text-brand-600" <%= _n.on ? 'checked' : '' %> /></label>
+      <% } %>
+    </div>
+  </section>
+  <section class="card p-6" aria-label="<%= it.copy.settings.security.ariaLabel %>">
+    <h2 class="section-title mb-5 flex items-center gap-2.5"><span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><i data-lucide="<%= it.copy.settings.security.icon %>" class="text-lg"></i></span><%= it.copy.settings.security.ariaLabel %></h2>
+    <div class="space-y-1">
+      <% for (const _s of (it.copy.settings.security.rows || [])) { %>
+        <div class="flex items-center justify-between rounded-xl p-3 transition hover:bg-neutral-50"><div><p class="item-title text-neutral-800"><%= _s.label %></p><p class="meta text-neutral-500"><%= _s.desc %></p></div>
+          <% if (_s.badge) { %><span class="badge bg-emerald-50 text-emerald-700"><%= _s.badge %></span><% } else { %><button class="btn btn-outline px-4"><%= _s.cta %></button><% } %>
+        </div>
+      <% } %>
+    </div>
+  </section>
+  <section class="card border-rose-200 bg-rose-50/60 p-6 hover:shadow-none" aria-label="<%= it.copy.settings.danger.ariaLabel %>">
+    <h2 class="section-title mb-5 flex items-center gap-2.5 text-rose-600"><span class="grid h-8 w-8 place-items-center rounded-lg bg-rose-100 text-rose-600"><i data-lucide="<%= it.copy.settings.danger.icon %>" class="text-lg"></i></span><%= it.copy.settings.danger.ariaLabel %></h2>
+    <div class="space-y-1">
+      <% for (const _d of (it.copy.settings.danger.rows || [])) { %>
+        <div class="flex items-center justify-between rounded-xl p-3 transition hover:bg-rose-100/70"><div><p class="item-title text-rose-600"><%= _d.label %></p><p class="meta text-neutral-500"><%= _d.desc %></p></div><button class="btn btn-ghost px-4 text-rose-600 hover:bg-rose-100"><%= _d.cta %></button></div>
+      <% } %>
+    </div>
+  </section>
+</div>

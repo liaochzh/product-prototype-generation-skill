@@ -1,0 +1,110 @@
+<div class="mx-auto max-w-4xl">
+  <% const _lg = it.copy.login; const _ld = _lg.desktop; const _mode = _lg.tabs[1].value; %>
+  <section class="card group/login overflow-hidden" aria-label="<%= _lg.ariaLabel %>">
+    <div class="grid grid-cols-1 md:grid-cols-2">
+      <aside class="hidden md:flex flex-col justify-between gap-8 bg-brand-50/40 p-8 border-r border-neutral-200" aria-label="<%= _ld.asideAriaLabel %>">
+        <div>
+          <p class="eyebrow text-brand-600"><%= _ld.asideEyebrow %></p>
+          <h3 class="hero-title mt-2 text-neutral-900"><%= _ld.asideTitle %></h3>
+          <p class="mt-2 text-sm text-neutral-600"><%= _ld.asideDesc %></p>
+        </div>
+        <ul class="space-y-3">
+          <% for (const _h of (_ld.highlights || [])) { %>
+            <li class="flex items-center gap-2.5 text-sm text-neutral-700"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-white text-brand-600 ring-1 ring-neutral-200/70"><i data-lucide="<%= _h.icon %>" class="text-base"></i></span><%= _h.text %></li>
+          <% } %>
+        </ul>
+      </aside>
+      <div class="p-8">
+        <h3 class="section-title"><%= _lg.title %></h3>
+        <p class="meta mt-1 text-neutral-500"><%= _lg.subtitle %></p>
+        <% /* 登录态切换=纯 CSS（radio + has-[:checked] / group-has-[#…]/login:），无脚本也有「验证码登录」可达 */ %>
+        <div class="mt-5 flex gap-1 rounded-xl bg-neutral-100 p-1" role="radiogroup" aria-label="<%= _lg.tabsAriaLabel %>">
+          <% for (const _t of _lg.tabs) { %>
+            <label class="flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-center text-sm font-medium text-neutral-500 transition has-[:checked]:bg-white has-[:checked]:text-neutral-900 has-[:checked]:shadow-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-400"><input type="radio" name="login-mode" value="<%= _t.value %>" id="login-mode-<%= _t.value %>" class="sr-only"<% if (_t.value === _lg.tabs[0].value) { %> checked<% } %> /><%= _t.label %></label>
+          <% } %>
+        </div>
+
+        <% /* a11y（WCAG 4.1.3 状态消息）：面板切换是纯 CSS，屏幕阅读器不会自动播报。
+           本区域里只有「当前选中态」那个 span 进入无障碍树（同一套 group-has-[#…:checked] 机制），
+           故切换时区域文本变化 → 播报；初始加载不播报（live region 只播报后续变化）。 */ %>
+        <p role="status" aria-live="polite" aria-atomic="true" class="sr-only" data-mode-status><% for (const _t of _lg.tabs) { %><span class="hidden group-has-[#login-mode-<%= _t.value %>:checked]/login:inline"><%= _lg.modeStatus[_t.value] %></span><% } %></p>
+        <div class="mt-4 space-y-4 group-has-[#login-mode-<%= _mode %>:checked]/login:hidden">
+          <% for (const _f of (_lg.fields || [])) { %>
+            <div>
+              <label for="<%= _f.id %>" class="label mb-1.5 block text-neutral-600"><%= _f.label %><% if (_f.required) { %> <span class="text-rose-500" aria-hidden="true">*</span><% } %></label>
+              <input id="<%= _f.id %>" type="<%= _f.kind === 'password' ? 'password' : 'text' %>" autocomplete="<%= _f.autocomplete %>" class="input" placeholder="<%= _f.placeholder %>"<% if (_f.required) { %> required aria-required="true"<% } %> />
+            </div>
+          <% } %>
+          <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 text-sm text-neutral-600"><input id="<%= _lg.remember.id %>" type="checkbox" class="h-4 w-4 rounded text-brand-600"<%= _lg.remember.checked ? ' checked' : '' %> /><%= _lg.remember.label %></label>
+            <a href="<%= it.link(_lg.forgot.target) %>" class="text-sm text-brand-600 transition hover:text-brand-700"><%= _lg.forgot.label %></a>
+          </div>
+          <button class="btn btn-primary w-full py-2.5"><%= _lg.submit %></button>
+        </div>
+
+        <div class="mt-4 hidden space-y-4 group-has-[#login-mode-<%= _mode %>:checked]/login:block">
+          <% for (const _f of (_lg.codeFields || [])) { %>
+            <div>
+              <label for="<%= _f.id %>" class="label mb-1.5 block text-neutral-600"><%= _f.label %><% if (_f.required) { %> <span class="text-rose-500" aria-hidden="true">*</span><% } %></label>
+              <div class="flex gap-2">
+                <input id="<%= _f.id %>" type="<%= _f.kind === 'password' ? 'password' : 'text' %>" autocomplete="<%= _f.autocomplete %>" class="input min-w-0 flex-1" placeholder="<%= _f.placeholder %>"<% if (_f.required) { %> required aria-required="true"<% } %> />
+                <% if (_f.sendCode) { %>
+                  <button type="button" data-send-code data-countdown="<%= _lg.codeButton.seconds %>" data-idle="<%= _lg.codeButton.idle %>" data-counting="<%= _lg.codeButton.counting %>" data-status-sent="<%= _lg.codeButton.statusSent %>" data-status-ready="<%= _lg.codeButton.statusReady %>" class="btn btn-outline shrink-0 px-3 py-2" aria-label="<%= _lg.codeButton.ariaLabel %>"><%= _lg.codeButton.idle %></button>
+                  <p role="status" aria-live="polite" aria-atomic="true" class="sr-only" data-code-status></p>
+                <% } %>
+              </div>
+            </div>
+          <% } %>
+          <button class="btn btn-primary w-full py-2.5"><%= _lg.submit %></button>
+        </div>
+
+        <div class="mt-7 flex items-center gap-3 meta text-neutral-400"><span class="h-px flex-1 bg-neutral-200"></span><span class="shrink-0"><%= _lg.divider %></span><span class="h-px flex-1 bg-neutral-200"></span></div>
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <% for (const _s of (_lg.socials || [])) { %>
+            <button class="btn btn-outline py-2.5" aria-label="<%= _s.ariaLabel %>"><i data-lucide="<%= _s.icon %>" class="text-lg"></i><%= _s.label %></button>
+          <% } %>
+        </div>
+        <p class="meta mt-4 text-center text-neutral-400"><%= _lg.legal %></p>
+        <p class="mt-4 text-center text-sm text-neutral-500"><%= _lg.toRegister.label %> <a href="<%= it.link(_lg.toRegister.target) %>" class="font-medium text-brand-600 transition hover:text-brand-700"><%= _lg.toRegister.action %></a></p>
+      </div>
+    </div>
+  </section>
+  <div class="mt-4 text-center">
+    <a href="<%= it.link(_lg.skip.target, _lg.skip.fallback) %>" class="btn btn-ghost px-4 py-2"><i data-lucide="arrow-right" class="text-base"></i><%= _lg.skip.label %></a>
+  </div>
+  <script>
+    (function () {
+      var toArr = function (n) { return Array.prototype.slice.call(n); };
+      // a11y（WCAG 4.1.3 状态消息）：按钮文案每秒都在变，**不能**把 live region 放在按钮上（会每秒播报）；
+      // 故只在「开始倒计时 / 倒计时结束」两次写入旁侧的 role="status" 节点（可见文案仍逐秒更新）。
+      toArr(document.querySelectorAll('[data-send-code]')).forEach(function (b) {
+        var timer = null;
+        var row = b.parentElement;
+        var status = row ? row.querySelector('[data-code-status]') : null;
+        var say = function (tpl, n) {
+          if (status && tpl) { status.textContent = tpl.replace('{{s}}', String(n)); }
+        };
+        b.addEventListener('click', function () {
+          if (timer) { return; }
+          var left = Number(b.getAttribute('data-countdown')) || 60;
+          var counting = b.getAttribute('data-counting');
+          b.disabled = true;
+          b.classList.add('opacity-60');
+          b.textContent = counting + '（' + left + 's）';
+          say(b.getAttribute('data-status-sent'), left);
+          timer = setInterval(function () {
+            left -= 1;
+            if (left <= 0) {
+              clearInterval(timer); timer = null;
+              b.disabled = false; b.classList.remove('opacity-60');
+              b.textContent = b.getAttribute('data-idle');
+              say(b.getAttribute('data-status-ready'), 0);
+              return;
+            }
+            b.textContent = counting + '（' + left + 's）';
+          }, 1000);
+        });
+      });
+    })();
+  </script>
+</div>

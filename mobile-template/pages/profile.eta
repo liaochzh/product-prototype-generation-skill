@@ -1,0 +1,59 @@
+<div class="min-h-full bg-neutral-50 pb-28">
+  <header class="sticky top-0 z-10 px-5 pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
+    <p class="eyebrow text-brand-600"><%= it.meta.productName %></p>
+    <h2 class="page-title mt-1 text-neutral-900"><%= it.copy.profile.title %></h2>
+    <a href="<%= it.link('settings','home') %>" class="absolute right-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="<%= it.copy.a11y.settings %>"><i data-lucide="settings" class="text-lg"></i></a>
+  </header>
+  <main class="px-4 pt-4 space-y-4">
+    <section class="card p-4" aria-label="<%= it.copy.profile.ariaLabel.info %>">
+      <div class="flex items-center gap-4">
+        <img src="<%= (it.images||[])[0] || it.placeholder %>" alt="<%= it.copy.profile.avatarAlt %>" class="h-20 w-20 rounded-full object-cover ring-2 ring-white shadow-md" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+        <div class="flex-1 min-w-0">
+          <h3 class="hero-title text-neutral-900"><%= it.copy.profile.name %></h3>
+          <p class="mt-0.5 text-sm text-neutral-500"><%= it.copy.profile.metaLine %><% if (it.copy.profile.rating) { %> <span class="font-semibold text-amber-600"><%= it.copy.profile.rating %></span><% } %></p>
+          <div class="mt-2.5 flex gap-4 text-sm">
+            <% for (const _s of (it.copy.profile.stats || [])) { %>
+              <% if (_s.target) { %>
+                <a href="<%= it.link(_s.target,'home') %>" class="text-neutral-600"><span class="stat-value text-neutral-900"><%= _s.value %></span> <span class="meta"><%= _s.label %></span></a>
+              <% } else { %>
+                <span aria-disabled="true" class="text-neutral-600 opacity-60"><span class="stat-value text-neutral-900"><%= _s.value %></span> <span class="meta"><%= _s.label %></span></span>
+              <% } %>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="grid grid-cols-4 gap-2" aria-label="<%= it.copy.profile.ariaLabel.assets %>">
+      <% const _assets = it.copy.profile.assets || []; %>
+      <% for (const _a of _assets) { %>
+        <div aria-disabled="true" class="flex flex-col items-center gap-1.5 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-neutral-200/70 opacity-70">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="<%= _a.icon %>" class="text-lg"></i></span>
+          <span class="text-xs font-medium text-neutral-700"><%= _a.label %></span>
+          <span class="text-xs text-neutral-400"><%= _a.value %></span>
+        </div>
+      <% } %>
+    </section>
+    <section class="card overflow-hidden divide-y divide-neutral-100" aria-label="<%= it.copy.profile.ariaLabel.menus %>">
+      <% /* 注意：_mi 由模板内常量数组拼装（无外部数据），故用 <%~ %> 原样注入；值已 it.esc 转义 */ %>
+      <% for (const _m of (it.copy.profile.menus || [])) { const _href = it.link(_m.target); const _off = _href === '#'; %>
+        <% const _mi = `<span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><i data-lucide="${it.esc(_m.icon)}" class="text-lg"></i></span><div class="flex-1 min-w-0"><p class="item-title ${_off ? 'text-neutral-500' : 'text-neutral-900'}">${it.esc(_m.title)}</p><p class="meta">${it.esc(_m.sub)}</p></div><i data-lucide="chevron-right" class="text-neutral-300"></i>`; %>
+        <% if (_off) { %>
+          <div class="flex items-center gap-3 px-4 py-3.5 opacity-60" aria-disabled="true"><%~ _mi %></div>
+        <% } else { %>
+          <a href="<%= _href %>" class="flex items-center gap-3 px-4 py-3.5 transition active:bg-neutral-50"><%~ _mi %></a>
+        <% } %>
+      <% } %>
+    </section>
+    <section class="card overflow-hidden divide-y divide-neutral-100" aria-label="<%= it.copy.profile.ariaLabel.sets %>">
+      <% for (const _s of (it.copy.profile.sets || [])) { const _href = it.link(_s.target); const _off = _href === '#'; %>
+        <% const _si = `<span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-100 text-neutral-500"><i data-lucide="${it.esc(_s.icon)}" class="text-lg"></i></span><div class="flex-1 min-w-0"><p class="item-title ${_off ? 'text-neutral-500' : 'text-neutral-900'}">${it.esc(_s.title)}</p><p class="meta">${it.esc(_s.sub)}</p></div><i data-lucide="chevron-right" class="text-neutral-300"></i>`; %>
+        <% if (_off) { %>
+          <div class="flex items-center gap-3 px-4 py-3.5 opacity-60" aria-disabled="true"><%~ _si %></div>
+        <% } else { %>
+          <a href="<%= _href %>" class="flex items-center gap-3 px-4 py-3.5 transition active:bg-neutral-50"><%~ _si %></a>
+        <% } %>
+      <% } %>
+    </section>
+    <button class="btn btn-secondary w-full py-3 active:scale-95"><%= it.copy.profile.logout %></button>
+  </main>
+</div>

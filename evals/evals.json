@@ -1,0 +1,34 @@
+{
+  "skill_name": "product-prototype-generation",
+  "version": "1",
+  "note": "客观断言集（确定性、无人值守）。主观视觉质量不进这里——那是人工评审。",
+  "evals": [
+    {
+      "id": 1,
+      "name": "ecommerce-mobile-全页集",
+      "fixture": "ecommerce",
+      "platform": "mobile",
+      "prompt": "我想做一个二手交易商城 App，要有首页、发现、列表、详情、发布、订单、我的",
+      "expected": "全页集生成成功、零死链、零任意字号、文案域闸门通过、图片均有 alt",
+      "assertions": ["生成成功", "页集落盘完整", "verify-prototype 通过", "无任意字号/任意圆角", "无占位图服务", "图片均有 alt"]
+    },
+    {
+      "id": 2,
+      "name": "account-desktop-登录注册",
+      "fixture": "account",
+      "platform": "desktop",
+      "prompt": "做一个后台账号系统，要登录、注册（含短信验证码）",
+      "expected": "登录/注册页生成成功且 aria/播报钩子齐备",
+      "assertions": ["生成成功", "页集落盘完整", "verify-prototype 通过", "无任意字号/任意圆角", "无占位图服务", "图片均有 alt"]
+    },
+    {
+      "id": 3,
+      "name": "saas-desktop-仪表盘",
+      "fixture": "saas",
+      "platform": "desktop",
+      "prompt": "做一个 SaaS 运营后台，要仪表盘、设置、表单",
+      "expected": "桌面专属模板（dashboard/settings/form）生成成功",
+      "assertions": ["生成成功", "页集落盘完整", "verify-prototype 通过", "无任意字号/任意圆角", "无占位图服务", "图片均有 alt"]
+    }
+  ]
+}

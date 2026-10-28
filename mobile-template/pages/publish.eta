@@ -1,0 +1,54 @@
+<div class="min-h-full bg-neutral-50 pb-28">
+  <header class="sticky top-0 z-10 px-5 pt-14 pb-3 bg-neutral-50/80 backdrop-blur-xl">
+    <a href="<%= it.link('home','list','discover','profile') %>" class="absolute left-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="<%= it.copy.a11y.back %>"><i data-lucide="chevron-left" class="text-lg"></i></a>
+    <h2 class="nav-title text-center"><%= it.copy.publish.title %></h2>
+  </header>
+  <main class="px-4 pt-4 pb-24 space-y-4">
+    <% const _ib = it.copy.publish.imageBlock; %>
+    <section class="card p-4 space-y-4" aria-label="<%= _ib.ariaLabel %>">
+      <h3 class="section-title"><%= _ib.title %></h3>
+      <div class="grid grid-cols-3 gap-3" id="image-grid">
+        <% for (let _i = 0; _i < (_ib.slots || 3); _i++) { %>
+          <label class="relative flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 transition hover:border-brand-300 hover:bg-brand-50/40 active:scale-95">
+            <input type="file" accept="image/*" class="absolute inset-0 opacity-0" aria-label="<%= (_ib.slotsAriaPrefix || '上传图片') + (_i + 1) %>" />
+            <i data-lucide="plus" class="text-2xl text-neutral-400"></i>
+          </label>
+        <% } %>
+      </div>
+      <p class="text-xs text-neutral-500"><%= _ib.hint %></p>
+    </section>
+    <% for (const _sec of (it.copy.publish.sections || [])) { %>
+      <section class="card p-4 space-y-4" aria-label="<%= _sec.ariaLabel || _sec.title %>">
+        <h3 class="section-title"><%= _sec.title %></h3>
+        <div class="space-y-3">
+          <% const _groups = []; for (const _f of (_sec.fields || [])) { const _last = _groups[_groups.length - 1]; if (_f.half && _last && _last.grid) _last.items.push(_f); else _groups.push({ grid: !!_f.half, items: [_f] }); } %>
+          <% for (const _g of _groups) { const _wrap = _g.grid; const _gcls = _wrap ? 'grid grid-cols-2 gap-3' + (_g.items.some((f) => !f.label) ? ' pt-1' : '') : ''; %>
+            <% if (_wrap) { %><div class="<%= _gcls %>"><% } %>
+            <% for (const _f of _g.items) { %>
+              <% if (_f.kind === 'radio') { %>
+                <% for (const _o of (_f.options || [])) { %>
+                  <label class="flex items-center gap-3 rounded-xl p-1"><input type="radio" name="<%= _f.name %>" class="text-brand-600"<%= _o.selected ? ' checked' : '' %> /><span class="text-sm"><%= _o.label %></span></label>
+                <% } %>
+              <% } else if (_f.kind === 'select') { %>
+                <% const _opts = _f.options || []; %>
+                <% if (_f.label) { %>
+                  <div><label class="label text-neutral-600"><%= _f.label %></label><select class="input mt-1.5" aria-label="<%= _f.ariaLabel || _f.label %>"><% for (const _o of _opts) { %><option<%= _o.selected ? ' selected' : '' %>><%= _o.label %></option><% } %></select></div>
+                <% } else { %>
+                  <select class="input" aria-label="<%= _f.ariaLabel || '' %>"><% for (const _o of _opts) { %><option<%= _o.selected ? ' selected' : '' %>><%= _o.label %></option><% } %></select>
+                <% } %>
+              <% } else if (_f.kind === 'textarea') { %>
+                <div><% if (_f.label) { %><label class="label text-neutral-600"><%= _f.label %></label><% } %><textarea class="input mt-1.5 min-h-[100px]" placeholder="<%= _f.placeholder || '' %>" aria-label="<%= _f.ariaLabel || _f.label || '' %>"></textarea></div>
+              <% } else if (_f.kind === 'number') { %>
+                <div class="flex items-center gap-1.5"><% if (_f.priceUnit) { %><span class="price text-brand-600"><%= _f.priceUnit %></span><% } %><input class="input flex-1" type="number" placeholder="<%= _f.placeholder || '' %>" aria-label="<%= _f.ariaLabel || _f.label || '' %>" /></div>
+              <% } else { %>
+                <div><% if (_f.label) { %><label class="label text-neutral-600"><%= _f.label %></label><% } %><input class="input mt-1.5" placeholder="<%= _f.placeholder || '' %>" aria-label="<%= _f.ariaLabel || _f.label || '' %>" /></div>
+              <% } %>
+            <% } %>
+            <% if (_wrap) { %></div><% } %>
+          <% } %>
+        </div>
+      </section>
+    <% } %>
+    <button class="btn btn-primary w-full py-3.5 active:scale-95"><%= it.copy.publish.submit %></button>
+  </main>
+</div>
