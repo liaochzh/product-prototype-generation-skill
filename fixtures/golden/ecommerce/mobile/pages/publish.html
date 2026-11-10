@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <script>(function(){var T={"compact":{"maxWidth":599,"maxHeight":479},"medium":{"maxWidth":839,"maxHeight":null},"expanded":{"maxWidth":1199,"maxHeight":null},"large":{"maxWidth":null,"maxHeight":null}};function f(w,h){if(!isFinite(w)||!isFinite(h))return 'compact';if(T.compact.maxHeight!==null&&h<=T.compact.maxHeight)return 'compact';for(var k in T){if(T[k].maxWidth!==null&&w<=T[k].maxWidth)return k;}return 'large';}function set(){document.documentElement.setAttribute('data-size-class',f(window.innerWidth,window.innerHeight));}set();window.addEventListener('resize',set);})();</script>
   <meta name="description" content="云集商城高保真可交互原型">
   <meta name="theme-color" content="hsl(158, 74%, 35%)">
   <title>云集商城原型</title>
@@ -267,9 +268,12 @@
         "3xl": "64px"
       },
       "screens": {
+        "tbl": "600px",
         "sm": "640px",
         "md": "768px",
+        "tbl-lg": "840px",
         "lg": "1024px",
+        "tbl-xl": "1200px",
         "xl": "1280px",
         "2xl": "1536px"
       },
@@ -688,10 +692,10 @@
     <a href="home.html" class="absolute left-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="返回"><i data-lucide="chevron-left" class="text-lg"></i></a>
     <h2 class="nav-title text-center">发布闲置</h2>
   </header>
-  <main class="px-page pt-4 pb-24 space-y-4">
+  <main class="px-page pt-4 pb-24 space-y-4 tbl:mx-auto tbl:max-w-2xl">
         <section class="card p-4 space-y-4" aria-label="上传图片">
       <h3 class="section-title">商品图片（最多 9 张）</h3>
-      <div class="grid grid-cols-3 gap-3" id="image-grid">
+      <div class="grid grid-cols-3 gap-3 tbl:grid-cols-6" id="image-grid">
                   <label class="relative flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 transition hover:border-brand-300 hover:bg-brand-50/40 active:scale-95">
             <input type="file" accept="image/*" class="absolute inset-0 opacity-0" aria-label="上传图片1" />
             <i data-lucide="plus" class="text-2xl text-neutral-400"></i>

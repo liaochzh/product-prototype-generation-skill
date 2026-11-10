@@ -266,7 +266,7 @@ function extractPagesFromFlows(content) {
 /**
  * 标准化页面名称：优先取行首英文 token（如 "home：核心页面" → "home"），过滤中文描述残留
  */
-export const KNOWN_PAGES = new Set(['home', 'discover', 'list', 'detail', 'publish', 'chat', 'orders', 'profile', 'dashboard', 'settings', 'form', 'login', 'register']);
+export const KNOWN_PAGES = new Set(['home', 'discover', 'list', 'list-detail', 'detail', 'publish', 'chat', 'orders', 'profile', 'dashboard', 'settings', 'form', 'login', 'register']);
 
 /**
  * 页面清单里「无法归一化」的页名（展示名取冒号前）。
@@ -283,15 +283,15 @@ export function extractUnknownPageNames(content) {
 }
 function normalizePageName(name) {
   const s = String(name || '').trim().toLowerCase();
-  // 行首英文 token
-  const head = s.match(/^([a-z]+)/);
+  // 行首英文 token（含连字符复合页名，如 `list-detail`；`[a-z]+` 会把 `list-detail` 吞成 `list`）
+  const head = s.match(/^([a-z][a-z-]*)/);
   if (head && KNOWN_PAGES.has(head[1])) return head[1];
-  // 行内首个已知页面词
-  for (const p of KNOWN_PAGES) {
+  // 行内首个已知页面词（**按页名长度降序**：`list-detail` 含 `list`，正序会让复合页名先被短名吞掉）
+  for (const p of [...KNOWN_PAGES].sort((a, b) => b.length - a.length)) {
     if (s.includes(p)) return p;
   }
   // 中文名映射
-  const zhMap = { '首页': 'home', '主页': 'home', '发现': 'discover', '广场': 'discover', '列表': 'list', '详情': 'detail', '发布': 'publish', '创建': 'publish', '新增': 'publish', '聊天': 'chat', '消息': 'chat', '会话': 'chat', '订单': 'orders', '个人中心': 'profile', '我的': 'profile', '仪表盘': 'dashboard', '概览': 'dashboard', '设置': 'settings', '表单': 'form', '登录': 'login', '注册': 'register' };
+  const zhMap = { '首页': 'home', '主页': 'home', '发现': 'discover', '广场': 'discover', '列表详情': 'list-detail', '列表': 'list', '详情': 'detail', '发布': 'publish', '创建': 'publish', '新增': 'publish', '聊天': 'chat', '消息': 'chat', '会话': 'chat', '订单': 'orders', '个人中心': 'profile', '我的': 'profile', '仪表盘': 'dashboard', '概览': 'dashboard', '设置': 'settings', '表单': 'form', '登录': 'login', '注册': 'register' };
   for (const [zh, en] of Object.entries(zhMap)) {
     if (s.includes(zh)) return en;
   }
@@ -618,7 +618,7 @@ export function getPagePriority(prdMeta) {
   }
 
   // 排序：首页优先，然后按频次，最后按核心页面顺序
-  const priorityOrder = ['home', 'discover', 'list', 'detail', 'publish', 'chat', 'orders', 'profile', 'dashboard', 'settings', 'form', 'login', 'register'];
+  const priorityOrder = ['home', 'discover', 'list', 'list-detail', 'detail', 'publish', 'chat', 'orders', 'profile', 'dashboard', 'settings', 'form', 'login', 'register'];
 
   return corePages.sort((a, b) => {
     const freqA = pageFrequency[a] || 0;

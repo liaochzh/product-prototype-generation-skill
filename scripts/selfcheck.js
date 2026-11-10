@@ -19,7 +19,7 @@ import { generateColorScheme, resolvePrimaryHsl } from '../utils/color-scheme.js
 import { getTheme, THEMES, resolveSwatch } from '../themes/index.js';
 import { generatePlaceholder } from '../utils/unsplash.js';
 import { assertLexiconConformance, buildCopyPack, assertCopyDomain, COPY_LEXICON } from '../utils/copy-domain.js';
-import { compareDirs, DEFAULT_DIMS, normalizeText, normalizeAttrs } from '../utils/copy-golden.js';
+import { compareDirs, DEFAULT_DIMS, normalizeText, normalizeAttrs, SPU_PATTERN } from '../utils/copy-golden.js';
 import { gateClasses, gateRawClasses, structuralDiff, countArbitrarySizes, TOKEN_SIZE_RE, arbScanRe } from '../utils/golden-gate.js';
 import { decideFreeze, classifyFileSet } from './freeze-golden.js';
 import { PRODUCT_TYPES, DEVICES, ASPECT_CLASSES, SIZE_CLASSES, SHELL_STAGE_PAD, deviceFrame, resolveSizeClass, TYPE_ROLES, fontSize, fontFamily, fontStacks } from '../constants.js';
@@ -471,8 +471,8 @@ const read = (p) => (existsSync(p) ? readFileSync(p, 'utf8') : '');
 }
 
 // ---- 场景 18：非电商类型移动端 e2e（闸门零 fail，覆盖 tool/community/content/other） ----
-// WHY 页集期望用「请求集 ∩ 平台模板」而非请求集：mobile 只有 10 个页面模板，
-// `form` / `dashboard` / `settings` 是桌面专属。旧生成器会静默用 home 模板顶替，
+// WHY 页集期望用「请求集 ∩ 平台模板」而非请求集：mobile 只有 11 个页面模板（含 mobile-only
+// `list-detail`），`form` / `dashboard` / `settings` 是桌面专属。旧生成器会静默用 home 模板顶替，
 // 产物变成重复首页、页名与内容不符，而页集/死链/文案域闸门全绿——本场景曾把该
 // 错误固化成「期望页集含 form」。现在改为：无模板页必须被跳过（report.skippedPages 留痕）
 // 且产物目录不得出现同名文件。
@@ -487,8 +487,8 @@ const read = (p) => (existsSync(p) ? readFileSync(p, 'utf8') : '');
   // 若生成器又退回「home 副本」，「产物无同名文件」断言仍会红。
   const MOBILE_TPL = new Set(readdirSync(join(SKILL_DIR, 'mobile-template', 'pages'))
     .filter((f) => f.endsWith('.eta')).map((f) => f.slice(0, -4)));
-  check('移动端模板基数（10 页，含 home）——跳过断言的判据前提',
-    MOBILE_TPL.size === 10 && MOBILE_TPL.has('home'), `size=${MOBILE_TPL.size}`);
+  check('移动端模板基数（11 页，含 home）——跳过断言的判据前提',
+    MOBILE_TPL.size === 11 && MOBILE_TPL.has('home'), `size=${MOBILE_TPL.size}`);
   for (const type of ['tool', 'community', 'content', 'other']) {
     const requested = PAGES[type].split(',');
     // 前提：requested 有效页 ≤ 10（现四组 ≤6），否则 slice(0,10) 截断会让 expect 与实得不等
@@ -652,8 +652,9 @@ ${['home', 'discover', 'list', 'detail', 'publish', 'chat', 'orders', 'profile',
   check('标准 PRD（MIN_PRD）无未登记页名', extractUnknownPageNames(MIN_PRD).length === 0, JSON.stringify(extractUnknownPageNames(MIN_PRD)));
   check('原话生成 PRD（含「- 跳转：home → …」行）不得假留痕',
     extractUnknownPageNames(rawPrd).length === 0, JSON.stringify(extractUnknownPageNames(rawPrd)));
-  check('可识别页名表为单一来源（13 个，含 home/form/dashboard）',
-    KNOWN_PAGES.size === 13 && KNOWN_PAGES.has('home') && KNOWN_PAGES.has('form') && KNOWN_PAGES.has('dashboard'), `size=${KNOWN_PAGES.size}`);
+  check('可识别页名表为单一来源（14 个，含 home/form/dashboard/list-detail）',
+    KNOWN_PAGES.size === 14 && KNOWN_PAGES.has('home') && KNOWN_PAGES.has('form')
+      && KNOWN_PAGES.has('dashboard') && KNOWN_PAGES.has('list-detail'), `size=${KNOWN_PAGES.size}`);
 }
 
 // ---- 场景 19：非电商类型桌面端 e2e（闸门零 fail） ----
@@ -2047,6 +2048,7 @@ ${body}
       ['ecommerce', ['home', 'discover', 'list', 'detail', 'publish', 'chat', 'orders', 'profile']],
       ['saas', ['dashboard', 'orders', 'list', 'detail', 'form', 'settings', 'profile']],
       ['account', ['home', 'profile', 'login', 'register']],
+      ['listdetail', ['home', 'list', 'list-detail', 'detail', 'chat', 'profile']],
     ];
     const bad = [];
     for (const f of GOLDEN_FIXTURES) {
@@ -2054,7 +2056,7 @@ ${body}
       const got = parsePRD(read(prdPathOf(f))).corePages;
       if (!sameSet(got, want)) bad.push(`${f.name}: ${JSON.stringify(got)}`);
     }
-    check('F2-docs ④：三条 fixture 的默认解析页集未漂移（8/7/4 规范值）', bad.length === 0, bad.join('；') || '无漂移');
+    check('F2-docs ④：四条 fixture 的默认解析页集未漂移（8/7/4/6 规范值）', bad.length === 0, bad.join('；') || '无漂移');
   }
 
   // ④b 永久合成断言：别名只在 tolerant 分支生效；默认分支遇「购物车」必须仍（丢词后）只留 home
@@ -2493,6 +2495,99 @@ ${body}
     (shell2.match(/class="crease-line"/g) || []).length === 0 && rep2.device.posture === 'closed' && rep2.device.crease === null,
     JSON.stringify({ posture: rep2.device.posture, crease: rep2.device.crease }));
   rmSync(ws2, { recursive: true, force: true });
+}
+
+// ---- 场景 43：页面级响应式契约（tbl 断点 / data-size-class 镜像 / 复合页 / desktop 字节锁）----
+// WHY 单独立场景：本轮的承诺分两半——「移动端真的按宽度重排」与「桌面端一个字节都不动」。
+// 后半段**无法用场景 17 证明**：golden 三维会 `stripNoise` 掉 `<script>/<style>`、文本维折叠
+// 标签间空白（utils/copy-golden.js），head 里多一个换行/空格它看不见。故这里补一条原文比对。
+{
+  const LD_PRD = read(join(SKILL_DIR, 'fixtures', 'prd', 'listdetail.md'));
+  const px = (n) => `${n}px`;
+  const wantTbl = {
+    tbl: px(SIZE_CLASSES.compact.maxWidth + 1),
+    'tbl-lg': px(SIZE_CLASSES.medium.maxWidth + 1),
+    'tbl-xl': px(SIZE_CLASSES.expanded.maxWidth + 1),
+  };
+  const hasTabletArtifacts = (html) => /"tbl(-lg|-xl)?":/.test(html) || /data-size-class/.test(html);
+  const normSpu = (s) => s.replace(SPU_PATTERN, '$1______');
+
+  // (a) 移动端：三档断点注入 + 阈值与 SIZE_CLASSES 同源（Infinity → null）+ 页面真的用了 tbl 类
+  const ws = newWs(LD_PRD);
+  const gen = run(GEN, ws, ['--platform', 'mobile', '--quiet']);
+  const home = read(join(ws, 'prototype', 'pages', 'home.html'));
+  const list = read(join(ws, 'prototype', 'pages', 'list.html'));
+  const ld = read(join(ws, 'prototype', 'pages', 'list-detail.html'));
+
+  const screensOk = Object.entries(wantTbl).every(([k, v]) => home.includes(`"${k}": "${v}"`));
+  check('mobile head 注入 tbl/tbl-lg/tbl-xl 三档（值 = SIZE_CLASSES.maxWidth+1）',
+    gen.status === 0 && screensOk, JSON.stringify(wantTbl));
+
+  const tblJson = (home.match(/var T=(\{[\s\S]*?\});function f\(w,h\)/) || [])[1];
+  let tblTable = null;
+  try { tblTable = JSON.parse(tblJson); } catch { /* 解析失败按 null 走红 */ }
+  const wantTable = Object.fromEntries(Object.entries(SIZE_CLASSES).map(([k, v]) => [k, {
+    maxWidth: Number.isFinite(v.maxWidth) ? v.maxWidth : null,
+    maxHeight: Number.isFinite(v.maxHeight) ? v.maxHeight : null,
+  }]));
+  check('尺寸类镜像脚本的阈值 == SIZE_CLASSES 派生值（Infinity→null，含 compact.maxHeight）',
+    JSON.stringify(tblTable) === JSON.stringify(wantTable),
+    `脚本=${JSON.stringify(tblTable)}；期望=${JSON.stringify(wantTable)}`);
+
+  check('list 页在 tbl 档多列（tbl:grid-cols-2 + data-grid 钩子）',
+    /tbl:grid-cols-2/.test(list) && /data-grid="cards"/.test(list));
+
+  const paneCount = (ld.match(/data-pane="/g) || []).length;
+  const hiddenBlocks = ld.match(/hidden[^"]*tbl:block/g) || [];
+  check('list-detail 双 pane 且单栏隐藏只作用于 pane 容器',
+    paneCount === 2 && /data-pane="list"/.test(ld) && /data-pane="detail"/.test(ld) && hiddenBlocks.length === 1,
+    `pane=${paneCount} hiddenTbl=${hiddenBlocks.length}`);
+  rmSync(ws, { recursive: true, force: true });
+
+  // (b) 桌面端：不注入任何 tbl/尺寸类痕迹 + 原文逐字节锁（SPU 随机 id 归一后）
+  // WHY 逐字节：场景 17 的三维归一化看不见 head 里的换行/空白与 `<script>` 段（见场景头注）。
+  const dirty = [];
+  for (const fx of GOLDEN_FIXTURES.filter((f) => f.platforms.includes('desktop'))) {
+    const d = newWs(read(prdPathOf(fx)));
+    const r = run(GEN, d, ['--platform', 'desktop', '--quiet']);
+    if (r.status !== 0) { dirty.push(`${fx.name}: 生成 exit=${r.status}`); rmSync(d, { recursive: true, force: true }); continue; }
+    const gdir = join(goldenDirOf(fx), 'desktop');
+    const walk = (dir, pre = '') => readdirSync(dir, { withFileTypes: true })
+      .flatMap((e) => (e.isDirectory() ? walk(join(dir, e.name), `${pre}${e.name}/`) : [`${pre}${e.name}`]));
+    for (const rel of walk(gdir).filter((f) => f.endsWith('.html'))) {
+      const want = read(join(gdir, rel));
+      const got = read(join(d, 'prototype', rel));
+      if (hasTabletArtifacts(got)) dirty.push(`${fx.name}/${rel}: 含 tbl/data-size-class 痕迹`);
+      else if (normSpu(got) !== normSpu(want)) dirty.push(`${fx.name}/${rel}: 原文不一致`);
+    }
+    rmSync(d, { recursive: true, force: true });
+  }
+  check('desktop 产物零 tbl/尺寸类痕迹且与 golden 原文逐字节一致', dirty.length === 0, dirty.slice(0, 5).join('；'));
+
+  // 负例：证明上面两条不是恒真 —— 注入即必须被识别
+  const sample = '<html><head><script>tailwind.config = {theme:{extend:{"screens": {"sm": "640px"}}}}</script></head><body>x</body></html>';
+  check('负例：desktop 注入 tbl 键会被识别（非恒真）',
+    !hasTabletArtifacts(sample) && hasTabletArtifacts(sample.replace('"screens": {', '"screens": {"tbl": "600px",')));
+  check('负例：逐字节比对能抓到单空格差异（非恒真）',
+    normSpu(sample) === normSpu(sample) && normSpu(sample) !== normSpu(sample.replace('</head>', ' </head>')));
+
+  // (c) 模板结构 lint：`hidden tbl:*` 只允许出现在 pane 容器上（禁「两份内容、断点二选一」）
+  {
+    const dir = join(SKILL_DIR, 'mobile-template', 'pages');
+    const bad = [];
+    for (const f of readdirSync(dir).filter((x) => x.endsWith('.eta'))) {
+      const src = read(join(dir, f));
+      for (const tag of src.match(/<[a-z][^>]*>/gi) || []) {
+        const cm = /\bclass="([^"]*)"/i.exec(tag);
+        if (!cm) continue;
+        const tokens = cm[1].split(/\s+/).filter(Boolean);
+        // 只认工具类 `hidden` 本身：`overflow-hidden` 是另一回事（子串匹配会假红）
+        if (!tokens.includes('hidden') || !tokens.some((t) => /^tbl(-lg|-xl)?:/.test(t))) continue;
+        if (!/data-pane=/.test(tag)) bad.push(`${f}: ${tag.slice(0, 60)}`);
+      }
+    }
+    check('模板 lint：hidden tbl:* 仅用于 data-pane 容器（不复制内容树）', bad.length === 0, bad.join('；'));
+  }
 }
 
 // ---- 汇总 ----

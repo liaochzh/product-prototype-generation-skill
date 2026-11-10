@@ -18,7 +18,7 @@
     <% const _imgs = (it.images || []); const _hero = _imgs[0]; %>
     <% if (_hero) { %>
     <a href="<%= it.link('detail','list','home') %>" class="group relative block overflow-hidden rounded-3xl shadow-lg shadow-neutral-900/10" aria-label="<%= it.copy.home.hero.ariaLabel %>">
-      <img src="<%= _hero %>" alt="<%= it.copy.home.hero.imgAlt %>" class="h-60 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
+      <img src="<%= _hero %>" alt="<%= it.copy.home.hero.imgAlt %>" class="h-60 tbl:h-80 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
       <div class="absolute inset-0 hero-overlay"></div>
       <div class="absolute inset-x-0 bottom-0 p-5 text-white">
         <span class="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-micro font-medium backdrop-blur-md ring-1 ring-white/25"><i data-lucide="sparkles" class="text-micro"></i><%= it.copy.home.hero.badge %></span>
@@ -33,7 +33,7 @@
         <h3 class="section-title"><%= it.copy.home.quick.title %></h3>
         <a href="<%= it.link('list','home') %>" class="inline-flex items-center gap-0.5 text-xs font-medium text-brand-600"><%= it.copy.home.quick.more %> <i data-lucide="chevron-right" class="text-xs"></i></a>
       </div>
-      <div class="grid grid-cols-4 gap-2">
+      <div class="grid grid-cols-4 gap-2 tbl:grid-cols-8" data-grid="quick">
         <% const _quick = (it.copy.home.quick.items || []).map((q) => [q.target, q.label, q.icon]); %>
         <% for (const _q of _quick) { %>
           <a href="<%= it.link(_q[0],'home') %>" class="flex flex-col items-center gap-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-neutral-200/60 active:scale-95 transition">
@@ -51,9 +51,9 @@
         <h3 class="section-title"><%= it.copy.home.recommend.title %></h3>
         <a href="<%= it.link('discover','home') %>" class="inline-flex items-center gap-0.5 text-xs font-medium text-brand-600"><%= it.copy.home.recommend.more %> <i data-lucide="chevron-right" class="text-xs"></i></a>
       </div>
-      <div class="flex gap-3 overflow-x-auto scrollbar-hide -mx-page px-page pb-1">
+      <div class="flex gap-3 overflow-x-auto scrollbar-hide -mx-page px-page pb-1 tbl:mx-0 tbl:grid tbl:grid-cols-4 tbl:gap-4 tbl:overflow-visible tbl:px-0" data-grid="recommend">
         <% for (let _i = 0; _i < _recs.length; _i++) { const _r = _recs[_i]; %>
-          <a href="<%= it.link('detail','list','home') %>" class="w-40 shrink-0 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200/60 active:scale-95 transition">
+          <a href="<%= it.link('detail','list','home') %>" class="w-40 shrink-0 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200/60 active:scale-95 transition tbl:w-auto">
             <img src="<%= _r %>" alt="<%= it.copy.home.recommend.imgAlt %>" class="h-28 w-full object-cover" loading="lazy" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
             <div class="p-3">
               <h4 class="item-title line-clamp-1"><%= it.copy.home.recommend.cardName(_i) %></h4>

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <script>(function(){var T={"compact":{"maxWidth":599,"maxHeight":479},"medium":{"maxWidth":839,"maxHeight":null},"expanded":{"maxWidth":1199,"maxHeight":null},"large":{"maxWidth":null,"maxHeight":null}};function f(w,h){if(!isFinite(w)||!isFinite(h))return 'compact';if(T.compact.maxHeight!==null&&h<=T.compact.maxHeight)return 'compact';for(var k in T){if(T[k].maxWidth!==null&&w<=T[k].maxWidth)return k;}return 'large';}function set(){document.documentElement.setAttribute('data-size-class',f(window.innerWidth,window.innerHeight));}set();window.addEventListener('resize',set);})();</script>
   <meta name="description" content="云集商城高保真可交互原型">
   <meta name="theme-color" content="hsl(158, 74%, 35%)">
   <title>云集商城原型</title>
@@ -267,9 +268,12 @@
         "3xl": "64px"
       },
       "screens": {
+        "tbl": "600px",
         "sm": "640px",
         "md": "768px",
+        "tbl-lg": "840px",
         "lg": "1024px",
+        "tbl-xl": "1200px",
         "xl": "1280px",
         "2xl": "1536px"
       },
@@ -689,8 +693,8 @@
     <h2 class="nav-title text-center">商品详情</h2>
     <button class="absolute right-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="更多"><i data-lucide="ellipsis" class="text-lg"></i></button>
   </header>
-  <main class="px-page pt-4 pb-32 space-y-4">
-    <section aria-label="图片轮播" class="relative h-72 overflow-hidden rounded-2xl">
+  <main class="px-page pt-4 pb-32 space-y-4 tbl:grid tbl:grid-cols-2 tbl:items-start tbl:gap-6 tbl:space-y-0 tbl:max-w-5xl tbl:mx-auto">
+    <section aria-label="图片轮播" class="relative h-72 overflow-hidden rounded-2xl tbl:h-96">
                             <img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&amp;fit=crop&amp;q=80&amp;crop=entropy&amp;w=800&amp;h=600" alt="商品图1" loading="lazy" class="absolute inset-0 h-full w-full object-cover " onerror="this.onerror=null;this.src='data:image/svg+xml,%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22300%22%20viewBox%3D%220%200%20400%20300%22%3E%0A%20%20%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22hsl(158%2C%2064%25%2C%2082%25)%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2260%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.15%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2240%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.25%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2220%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.4%22%2F%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2265%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2218%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.7%22%3Eplaceholder%3C%2Ftext%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2272%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2212%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.5%22%3E%E5%9B%BE%E7%89%87%E5%8D%A0%E4%BD%8D%3C%2Ftext%3E%0A%3C%2Fsvg%3E%0A'" />
                       <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&amp;fit=crop&amp;q=80&amp;crop=center&amp;w=800&amp;h=600" alt="商品图2" loading="lazy" class="absolute inset-0 h-full w-full object-cover hidden" onerror="this.onerror=null;this.src='data:image/svg+xml,%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22300%22%20viewBox%3D%220%200%20400%20300%22%3E%0A%20%20%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22hsl(158%2C%2064%25%2C%2082%25)%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2260%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.15%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2240%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.25%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2220%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.4%22%2F%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2265%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2218%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.7%22%3Eplaceholder%3C%2Ftext%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2272%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2212%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.5%22%3E%E5%9B%BE%E7%89%87%E5%8D%A0%E4%BD%8D%3C%2Ftext%3E%0A%3C%2Fsvg%3E%0A'" />
                       <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&amp;fit=crop&amp;q=80&amp;crop=faces&amp;w=800&amp;h=600" alt="商品图3" loading="lazy" class="absolute inset-0 h-full w-full object-cover hidden" onerror="this.onerror=null;this.src='data:image/svg+xml,%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22300%22%20viewBox%3D%220%200%20400%20300%22%3E%0A%20%20%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22hsl(158%2C%2064%25%2C%2082%25)%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2260%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.15%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2240%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.25%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2220%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.4%22%2F%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2265%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2218%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.7%22%3Eplaceholder%3C%2Ftext%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2272%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2212%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.5%22%3E%E5%9B%BE%E7%89%87%E5%8D%A0%E4%BD%8D%3C%2Ftext%3E%0A%3C%2Fsvg%3E%0A'" />
@@ -733,7 +737,7 @@
     </section>
     <section class="space-y-3">
       <h3 class="section-title px-1">同类推荐</h3>
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-2 gap-3 tbl:grid-cols-4">
                   <a href="detail.html" class="card overflow-hidden p-2 active:scale-95 transition">
             <img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&amp;fit=crop&amp;q=80&amp;crop=entropy&amp;w=800&amp;h=600" alt="推荐" loading="lazy" class="h-28 w-full rounded-xl object-cover" onerror="this.onerror=null;this.src='data:image/svg+xml,%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22300%22%20viewBox%3D%220%200%20400%20300%22%3E%0A%20%20%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22hsl(158%2C%2064%25%2C%2082%25)%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2260%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.15%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2240%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.25%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2220%22%20fill%3D%22hsl(158%2C%2064%25%2C%2042%25)%22%20opacity%3D%220.4%22%2F%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2265%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2218%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.7%22%3Eplaceholder%3C%2Ftext%3E%0A%20%20%3Ctext%20x%3D%2250%25%22%20y%3D%2272%25%22%20font-family%3D%22-apple-system%2Csystem-ui%2Csans-serif%22%20font-size%3D%2212%22%20fill%3D%22hsl(158%2C%2064%25%2C%2030%25)%22%20text-anchor%3D%22middle%22%20opacity%3D%220.5%22%3E%E5%9B%BE%E7%89%87%E5%8D%A0%E4%BD%8D%3C%2Ftext%3E%0A%3C%2Fsvg%3E%0A'" />
             <p class="item-title mt-2 line-clamp-1">推荐书籍 1</p>
@@ -753,7 +757,7 @@
               </div>
     </section>
   </main>
-  <div class="fixed inset-x-0 bottom-0 z-20 flex gap-3 border-t border-neutral-200 bg-white/95 p-4 backdrop-blur-xl" role="toolbar" aria-label="底部操作栏">
+  <div class="fixed inset-x-0 bottom-0 z-20 flex gap-3 border-t border-neutral-200 bg-white/95 p-4 backdrop-blur-xl tbl:static tbl:mx-auto tbl:mt-6 tbl:w-full tbl:max-w-5xl tbl:rounded-2xl tbl:border" role="toolbar" aria-label="底部操作栏">
                         <a href="chat.html" class="btn btn-secondary flex-1 py-3 active:scale-95"><i data-lucide="message-circle" class="mr-2"></i>聊一聊</a>
                               <button class="btn btn-primary flex-1 py-3 active:scale-95"><i data-lucide="shopping-cart" class="mr-2"></i>加入购物车</button>
                               <button class="btn btn-primary flex-1 py-3 active:scale-95"><i data-lucide="zap" class="mr-2"></i>立即购买</button>

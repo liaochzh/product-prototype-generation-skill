@@ -226,7 +226,7 @@ export async function generateImageMap(prdMeta, pageList, options = {}) {
   let localCount = 0;
   let totalCount = 0;
 
-  const QUOTA = { home: 6, detail: 4, discover: 6, list: 6, orders: 3, profile: 3, chat: 2, publish: 2, dashboard: 2, settings: 1, form: 1, login: 1 };
+  const QUOTA = { home: 6, 'list-detail': 6, detail: 4, discover: 6, list: 6, orders: 3, profile: 3, chat: 2, publish: 2, dashboard: 2, settings: 1, form: 1, login: 1 };
   for (const page of pageList) {
     const count = QUOTA[page] ?? 2;
     const local = toWeb(pickLocal(localAssets, page, count));

@@ -68,12 +68,12 @@ GenUI确认模板（必须原样）：
 - **交互与状态播报（WCAG 4.1.3）**：切换类交互**纯 CSS 优先**（`radio` + `has-[:checked]`/`group-has-[#id:checked]/<group>`），脚本只做时间类。两条硬禁令：**live region 不得把 `hidden` 挂自身**（要常驻、用内层节点变化驱动）；**按钮上不得挂 `aria-live`**（倒计时会逐秒播报）。三形态接线与棘轮 → **`references/a11y-announce.md`**。
 
 ## 平台构建策略
-- 移动端：**外壳与内容分离**——`layout-shell.eta` 渲染 `index.html`（设备外框+挖孔+状态栏+页面导航+`<iframe name="phone">`），`layout-page.eta` 渲染 `pages/*.html`（完整文档，底部 TabBar 由 `it.tabbar` 注入，全屏页 chat/detail/publish/login/register 自动隐藏）；按钮`active:scale-95`；卡片左右留边。外壳几何**全部由 `it.device` 驱动**（见「多设备适配」），不再硬编码机型尺寸。
+- 移动端：**外壳与内容分离**——`layout-shell.eta` 渲染 `index.html`（设备外框+挖孔+状态栏+页面导航+`<iframe name="phone">`），`layout-page.eta` 渲染 `pages/*.html`（完整文档，底部 TabBar 由 `it.tabbar` 注入，全屏页 chat/detail/list-detail/publish/login/register 自动隐藏）；按钮`active:scale-95`；卡片左右留边。外壳几何**全部由 `it.device` 驱动**（见「多设备适配」），不再硬编码机型尺寸。
 - PC端：`desktop-template/layout.eta`为Sidebar+Header+Content，`max-w-7xl`居中；Hover上浮、Tooltip、表格行高亮。
-- **两端可用页集**（自检钉死与模板目录同源，改模板必须同步本行）：移动端可用页（10）：`home/discover/list/detail/publish/chat/orders/profile/login/register`；桌面端可用页（13）= 移动端 10 页 + 桌面专属页（3）：`dashboard/form/settings`。PRD 页面清单写了桌面专属页却选移动端 ⇒ 生成器**跳过该页**并在 `report.skippedPages` 留痕（warn 同时给出 `--platform desktop` 出口与本平台可用页）；`saas`/`tool` 类型建议直接用桌面端。自由格式文档请走 `--from=`（其未登记词进假设清单）。
+- **两端可用页集**（自检钉死与模板目录同源，改模板必须同步本行）：移动端可用页（11）：`home/discover/list/list-detail/detail/publish/chat/orders/profile/login/register`；桌面端可用页（13）= 双端交集 10 页 + 桌面专属页（3）：`dashboard/form/settings`（`list-detail` 是 mobile-only 复合页，桌面不产）。PRD 页面清单写了桌面专属页却选移动端 ⇒ 生成器**跳过该页**并在 `report.skippedPages` 留痕（warn 同时给出 `--platform desktop` 出口与本平台可用页）；`saas`/`tool` 类型建议直接用桌面端。自由格式文档请走 `--from=`（其未登记词进假设清单，`list-detail` 亦不在文档导入白名单内）。
 
 ## 多设备适配
-设备为**单一事实来源**：`constants.js` 的 `DEVICES`（17 款机型：直板 4 / 折叠 10 / 平板 3）+ `ASPECT_CLASSES`（布局档位）+ `SIZE_CLASSES`（尺寸类，只进报告面）。外壳 `layout-shell.eta` 只消费 `it.device.*`，新增设备只需在 `DEVICES` 填一行。
+设备为**单一事实来源**：`constants.js` 的 `DEVICES`（17 款机型：直板 4 / 折叠 10 / 平板 3）+ `ASPECT_CLASSES`（布局档位）+ `SIZE_CLASSES`（尺寸类，报告面 + 平板断点派生源 `TABLET_SCREENS`）。外壳 `layout-shell.eta` 只消费 `it.device.*`，新增设备只需在 `DEVICES` 填一行。
 
 - 关键结论：三个覆盖参数（`--device-width/height`、`--aspect`、`--crease`）**彼此独立**，缺省 `iphone16`；档位以**逻辑宽度为主判据**（`<600px` → `phone`，`≥600px` 且宽高比 `>1.30` → `wide`，其余 `pane`）；栏数由**竖**折痕派生（横折不计）；给了自定义尺寸时外壳文案必须**诚实标注**不谎报机型。
 - **折叠姿态**：`--posture flat|half|closed`（**仅折叠设备**；与 `--crease` 互斥）。这是**外壳预览参数**——折算成折痕覆盖，不改模板；不得表述为「运行时判定姿态」，页面层也不得自绘折痕避让（系统已内建半折推离行为）。
@@ -104,7 +104,7 @@ GenUI确认模板（必须原样）：
 - 跨页不变量：品牌标识、导航、页脚、主 CTA 同位同尺寸同顺序；导航当前态同位置同视觉。
 - 衔接：外壳内切页走直切或交叉淡化；不引入路由库；不减失返回路径。
 - 兼容：产物按哲学层 §兼容基线 的宽度矩阵抽样，未测项在交付说明写 N/A 与理由。
-- **边界（分期口径）**：**一期已落地**（2026-11-10）：平板设备预设 + `SIZE_CLASSES`（报告面）+ `--frame-set` 多帧预览 + `--posture` 姿态预览——均为纯加法：缺省 **HTML 逐字节不变**、文件集不变、golden 不重冻（`generation-report.json` 为纯加法新增 `sizeClass`/`posture`/`frames` 键，非 HTML；看报告字节的比对须按「加法」而非「不变」判）。**二期**：页面级响应式重排与 `data-size-class` DOM 属性，须改 `mobile-template/*.eta` 并同轮重冻 golden（`--reinit --only <fixture>` + `--allow-pageset-change`）。多帧预览**不演示状态连续性**，也不模拟真实多窗口 / 姿态事件。
+- **边界（分期口径）**：**一期已落地**（2026-11-10）：平板设备预设 + `SIZE_CLASSES`（报告面）+ `--frame-set` 多帧预览 + `--posture` 姿态预览——均为纯加法：缺省 **HTML 逐字节不变**、文件集不变、golden 不重冻（`generation-report.json` 为纯加法新增 `sizeClass`/`posture`/`frames` 键，非 HTML；看报告字节的比对须按「加法」而非「不变」判）。**二期已落地**（2026-11-10）：移动端页面级重排（`tbl`=600 / `tbl-lg`=840 / `tbl-xl`=1200，由 `SIZE_CLASSES.maxWidth+1` 派生，**只注入 mobile**）+ `html[data-size-class]` 镜像属性（只诊断/断言，不参与布局）+ `list-detail` 复合页（mobile-only 双 pane）。二期改了 `mobile-template/*.eta` 与移动端 head，故 **mobile golden 已重冻**（`--write --allow-structural --allow-class-refactor --only ecommerce,account`；新页集走 `--write --init --only listdetail`）；**desktop golden 零字节变更**（`screens` 不注入 + head 第 4 参空串，由 selfcheck 场景 43 原文锁守护）。多帧预览**不演示状态连续性**，也不模拟真实多窗口 / 姿态事件。
 
 ## 原型生成规范条款（消费哲学层「交付闸门」）
 
@@ -113,7 +113,7 @@ App 记录项 5 条（**记录项**，非硬禁令，交付时自检回填）与
 ## 质量自检
 
 - `verify-prototype.js`：中文占比、Lorem/占位图、viewport、语义化、**死链**、未解析站内导航、**内联 Tailwind 配置可执行性**、**设备几何一致性**（`layoutFail`/`creaseFail` 计入 `passed`）、**尺寸类/姿态枚举**（`device.sizeClass` 四档、`device.posture` 三档或 null）、**多帧断言**（`report.frames` 非空时逐帧比对 `device-<key>.html` 的 `data-device/data-aspect/data-panes`，并校验 `frames[].sizeClass/posture` 枚举与 `gallery.html` 逐帧 iframe 尺寸 = `frameWidth/Height + 48`）；`generation-report.json` 随产物输出（含 `device`（新增 `sizeClass` / `posture`）、`frames`（缺省 `[]`）、`capabilities`、`skippedPages`（无模板而跳过的页，恒存在）、`truncatedPages`（超 10 页上限被截断的页，恒存在）、`unknownPages`（页面清单里未登记、已忽略的页名，恒存在），以及文档导入三字段 `prdSource`（`prd`/`doc`）、`assumptions`、`prdWarnings`）。
-- `selfcheck.js`：全链路回归（52 个场景块）+ 多 fixture golden 三维零回归。**改动生成链路、模板或词典后必须跑**。
+- `selfcheck.js`：全链路回归（53 个场景块）+ 多 fixture golden 三维零回归。**改动生成链路、模板或词典后必须跑**。
 - 覆盖面清单（每个场景锁什么、页集↔fixture↔golden 规则、四个浏览器 harness 各自证明什么）→ **`references/selfcheck-gates.md`**。
 - 浏览器层（需本机 Chrome，`selfcheck --browser`）：交互/播报/版式/字号实测。**版式塌（横向溢出、底部导航遮内容、文本截断、侧栏压主区）用 `scripts/verify-layout.js` 的几何断言兜住**——不建像素基线（那会改 `head` 并重冻 golden）。
 

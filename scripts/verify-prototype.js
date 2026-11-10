@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** 质量自检：node scripts/verify-prototype.js */
-import { resolve, relative } from 'path';
+import { resolve, relative, sep } from 'path';
 import { readFileSafe, listFiles } from '../utils/fs-extra.js';
 import { log } from '../utils/logger.js';
 import { collectDeadLinks } from '../utils/check-links.js';
@@ -185,6 +185,27 @@ if (frameList.length) {
         }
       });
     }
+  }
+}
+
+// ---- 复合页 pane 契约（list-detail）----
+// WHY 静态断言：双 pane 是「列表 + 详情同屏」唯一的可验证事实；golden 三维比的是单元素
+// class 串，表达不了「同一页里两块 pane 都在」。缺 pane 只能靠目视，属静默退化。
+// 只在产物里真有这页时检查（其他 fixture 的页集不含它）。
+{
+  const ldFile = files.find((f) => f.endsWith(`${sep}pages${sep}list-detail.html`));
+  if (ldFile) {
+    const html = await readFileSafe(ldFile);
+    const panes = { list: '', detail: '' };
+    for (const pane of Object.keys(panes)) {
+      if (!new RegExp(`data-pane="${pane}"`).test(html)) {
+        layoutFail++; log.verify.error(`pages/list-detail.html 缺 data-pane="${pane}"（复合页双栏契约）`);
+      }
+    }
+    const listChunk = (html.split('data-pane="list"')[1] || '').split('data-pane="detail"')[0];
+    const detailChunk = (html.split('data-pane="detail"')[1] || '');
+    if (!/<a\b/i.test(listChunk)) { layoutFail++; log.verify.error('pages/list-detail.html 左 pane 无可点击列表项（<a> 为空）'); }
+    if (!/<(a|button)\b/i.test(detailChunk)) { layoutFail++; log.verify.error('pages/list-detail.html 右 pane 无操作入口（<a>/<button> 为空）'); }
   }
 }
 

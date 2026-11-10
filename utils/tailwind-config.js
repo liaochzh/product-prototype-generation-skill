@@ -2,11 +2,25 @@
  * Tailwind 配置生成器 - 根据产品类型、平台、品牌色生成完整配置
  */
 
-import { DESIGN_TOKENS, semanticColors, TYPE_ROLES } from '../constants.js';
+import { DESIGN_TOKENS, semanticColors, TYPE_ROLES, SIZE_CLASSES, TABLET_SCREENS } from '../constants.js';
 import { resolvePrimaryHsl } from './color-scheme.js';
 import { log } from './logger.js';
 
 const { breakpoints, radius, shadows, blur, fontFamily, fontSize, spacing, layout, transition, zIndex } = DESIGN_TOKENS;
+
+/**
+ * 移动端 screens：平板三档（`tbl/tbl-lg/tbl-xl`，由 SIZE_CLASSES 派生）与既有断点
+ * **按 min-width 升序**合并。对象键序即内联配置的产物序，必须确定（否则 golden 抖动）；
+ * 桌面端不调用本函数 —— 桌面版式已由 `lg/xl` 的 aside 布局决定，注入只会让 head 漂移。
+ */
+function mobileScreens() {
+  const px = (v) => parseInt(v, 10);
+  const merged = [
+    ...Object.entries(TABLET_SCREENS),
+    ...Object.entries(breakpoints),
+  ].sort((a, b) => px(a[1]) - px(b[1]));
+  return Object.fromEntries(merged);
+}
 
 /**
  * 生成完整的 Tailwind 配置对象
@@ -90,8 +104,8 @@ export function generateTailwindConfig(prdMeta, platform, { theme = null } = {})
         // 模糊
         backdropBlur: blur,
 
-        // 断点
-        screens: breakpoints,
+        // 断点（移动端额外并入平板三档 tbl/tbl-lg/tbl-xl；桌面端保持原值）
+        screens: platform === 'mobile' ? mobileScreens() : breakpoints,
 
         // 过渡动画
         transitionDuration: {
@@ -495,14 +509,42 @@ export function generateInlineScript(config) {
 }
 
 /**
- * 生成完整的 HTML head 所需资源
+ * `data-size-class` 运行时镜像脚本（**仅移动端**注入）。
+ *
+ * WHY 需要：页面文件被各设备帧共用，视口宽由帧决定 ⇒ 生成期无法写死尺寸类。
+ * CSS 重排由 `tbl:` variants 驱动，本脚本只把当前档位写到 `html[data-size-class]`，
+ * 供调试、浏览器断言与验收取证；**它不参与布局**（删掉不影响视觉）。
+ *
+ * 阈值从 SIZE_CLASSES 派生（唯一事实源，避免 JS 里再抄一遍数字）；
+ * `Infinity` 序列化为 `null`（JSON 不支持），脚本内按「无上界」处理；
+ * `compact.maxHeight` 必须保留，否则 479 高的横屏会被误判。
  */
-export function generateHeadResources(config, title, description = '') {
+export function generateSizeClassScript() {
+  const table = Object.fromEntries(Object.entries(SIZE_CLASSES).map(([k, v]) => [k, {
+    maxWidth: Number.isFinite(v.maxWidth) ? v.maxWidth : null,
+    maxHeight: Number.isFinite(v.maxHeight) ? v.maxHeight : null,
+  }]));
+  const body = `(function(){var T=${JSON.stringify(table)};`
+    + `function f(w,h){if(!isFinite(w)||!isFinite(h))return 'compact';`
+    + `if(T.compact.maxHeight!==null&&h<=T.compact.maxHeight)return 'compact';`
+    + `for(var k in T){if(T[k].maxWidth!==null&&w<=T[k].maxWidth)return k;}`
+    + `return 'large';}`
+    + `function set(){document.documentElement.setAttribute('data-size-class',f(window.innerWidth,window.innerHeight));}`
+    + `set();window.addEventListener('resize',set);})();`;
+  // 与 generateInlineScript 同法转义，避免脚本体内的 `</script` 提前闭合标签
+  return `<script>${body.replace(/<\/(script)/gi, '<\\/$1')}</script>`;
+}
+
+/**
+ * 生成完整的 HTML head 所需资源
+ * @param {string} [sizeClassScript] 移动端尺寸类镜像脚本；传空串时输出与旧版逐字节相同
+ */
+export function generateHeadResources(config, title, description = '', sizeClassScript = '') {
   const inlineScript = generateInlineScript(config);
 
   return `
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">${sizeClassScript ? `\n  ${sizeClassScript}` : ''}
   <meta name="description" content="${description}">
   <meta name="theme-color" content="${config.theme.extend.colors.brand[600]}">
   <title>${title}</title>
@@ -532,4 +574,5 @@ export default {
   generateTailwindConfig,
   generateInlineScript,
   generateHeadResources,
+  generateSizeClassScript,
 };

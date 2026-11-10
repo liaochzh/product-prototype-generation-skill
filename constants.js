@@ -285,6 +285,7 @@ export const DESIGN_TOKENS = {
     home: ['hero', 'dashboard', 'landing'],
     discover: ['explore', 'browse', 'feed'],
     list: ['grid', 'catalog', 'collection'],
+    'list-detail': ['catalog', 'detail', 'compare'],
     detail: ['product', 'item', 'content'],
     publish: ['create', 'editor', 'upload'],
     chat: ['messaging', 'conversation', 'support'],
@@ -413,7 +414,8 @@ const TIGHT_HEIGHT = 700;   // 逻辑高低于此值 → verticalSpace='tight'�
 
 /* ── 尺寸类（宽高两维，官方口径）────────────────────────────────────────────
  * 与 ASPECT_CLASSES 的分工：ASPECT_CLASSES 决定「页面骨架用哪套」（单栏/双栏/横排），
- * SIZE_CLASSES 只作**报告面与预览口径**（generation-report.json / 文档），不改模板产物。
+ * SIZE_CLASSES 是**报告面与预览口径**（generation-report.json / 文档）+ 平板断点的
+ * **派生源**（TABLET_SCREENS 由 maxWidth+1 生成，见下）。
  * 断点取 Android 窗口尺寸类（宽度 compact/medium/expanded/large，XL 并入 large；
  * 高度 compact 另有一档阈值），本表是**唯一事实源**，resolveSizeClass 直接读它。
  * iOS 参考：size class 只有 compact/regular，不认固定断点（Apple Tech Talk 111461），
@@ -441,6 +443,20 @@ export function resolveSizeClass(w, h) {
   }
   return 'large';
 }
+
+/* ── 平板断点（Tailwind screens 键）──────────────────────────────────────────
+ * 唯一事实源仍是 SIZE_CLASSES：档位上界 +1 即是下一档的起点（599 → 600 / 839 → 840 /
+ * 1199 → 1200），故**不写字面量**，改档位即改断点。
+ * 形态必须与 DESIGN_TOKENS.breakpoints 一致（`'NNNpx'` 字符串），否则内联配置里
+ * 数字/字符串混型会让 Play CDN 的 screens 归一不确定。
+ * 只注入移动端（见 utils/tailwind-config.js）：桌面版式已由 `lg/xl` 的 aside 布局决定，
+ * 注入会让 desktop golden 的 head 漂移。
+ */
+export const TABLET_SCREENS = {
+  tbl: `${SIZE_CLASSES.compact.maxWidth + 1}px`,
+  'tbl-lg': `${SIZE_CLASSES.medium.maxWidth + 1}px`,
+  'tbl-xl': `${SIZE_CLASSES.expanded.maxWidth + 1}px`,
+};
 
 /**
  * 设备预设表。数据等级标注：

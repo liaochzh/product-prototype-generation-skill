@@ -11,7 +11,7 @@ import { createHash } from 'crypto';
 import { readFileSafe, writeFileAtomic, ensureDir, removeRecursive, exists, listFiles, statSafe } from '../utils/fs-extra.js';
 import { log, setVerbose, setQuiet, startProgress, updateProgress, succeedProgress, failProgress } from '../utils/logger.js';
 import { parsePRD, validatePRD, getPagePriority, extractUnknownPageNames, KNOWN_PAGES } from '../utils/prd-parser.js';
-import { generateTailwindConfig, generateHeadResources } from '../utils/tailwind-config.js';
+import { generateTailwindConfig, generateHeadResources, generateSizeClassScript } from '../utils/tailwind-config.js';
 import { generateColorScheme } from '../utils/color-scheme.js';
 import { generateImageMap } from '../utils/unsplash.js';
 import { render, precompileAll } from '../utils/eta-renderer.js';
@@ -197,7 +197,7 @@ const assetsDir = resolve(outDir, 'assets');
 const pagesDir = resolve(outDir, 'pages');
 const tplDir = resolve(SKILL_DIR, platform === 'desktop' ? 'desktop-template' : 'mobile-template');
 
-const PAGE_TITLES = { home: '首页', discover: '发现', list: '列表', detail: '详情', publish: '发布', chat: '消息', orders: '订单', profile: '我的', dashboard: '工作台', settings: '设置', form: '表单', login: '登录', register: '注册' };
+const PAGE_TITLES = { home: '首页', discover: '发现', list: '列表', 'list-detail': '列表详情', detail: '详情', publish: '发布', chat: '消息', orders: '订单', profile: '我的', dashboard: '工作台', settings: '设置', form: '表单', login: '登录', register: '注册' };
 
 // 需求文档导入（F2-docs）的「假设清单」：由 generate-prd.js --from= 独占写，
 // 这里只读。它带 `prdSha1`——只看路径会被 `--prd docs/prd.md`（相对）与
@@ -321,7 +321,7 @@ async function buildOnce() {
 
   const scheme = generateColorScheme(meta.productType, meta.brandColor, { theme });
   const twConfig = generateTailwindConfig(meta, platform, { theme });
-  const head = generateHeadResources(twConfig, `${meta.productName}原型`, `${meta.productName}高保真可交互原型`);
+  const head = generateHeadResources(twConfig, `${meta.productName}原型`, `${meta.productName}高保真可交互原型`, isMobile ? generateSizeClassScript() : '');
   const images = await generateImageMap(meta, pages, { assetsDir, theme });
   await precompileAll(tplDir).catch(() => {});
 
@@ -372,7 +372,7 @@ async function buildOnce() {
   const shapeImg = (p) => (src) => (/^(?:https?:|data:|\/\/)/i.test(src) ? src : assetBase(p) + src);
 
   // 底部 TabBar（抽取自各页重复的内联实现）——仅渲染当前页集中存在的项；全屏页不注入
-  const TABBAR_HIDDEN = new Set(['chat', 'detail', 'publish', 'login', 'register']);
+  const TABBAR_HIDDEN = new Set(['chat', 'detail', 'list-detail', 'publish', 'login', 'register']);
   const TAB_ITEMS = (Array.isArray(copyPack.tabbar) ? copyPack.tabbar : []).map((t) => [t.target, t.icon, t.label]);
   const buildTabbar = (p) => {
     if (!isMobile || TABBAR_HIDDEN.has(p)) return '';

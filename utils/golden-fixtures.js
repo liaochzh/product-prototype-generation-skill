@@ -10,6 +10,7 @@
  *   - saas      ：desktop dashboard/orders/list/detail/form/settings/profile（补桌面专属）
  *   - account   ：mobile + desktop 的 home/profile/login（补 login 双端模板；type=other，
  *                 顺带覆盖「无领域词」的兜底词典路径）
+ *   - listdetail：mobile 的 home/list/list-detail/detail/chat/profile（补 mobile-only 复合页）
  *
  * 页集**不在此处重复登记**：由 PRD 文件经 prd-parser 派生（单一来源，避免表与 PRD 漂移）。
  * 覆盖完备性由 selfcheck 断言：每端「各 fixture 页集并集」⊇ 该端 `pages/*.eta` 模板集
@@ -31,6 +32,8 @@ export const GOLDEN_FIXTURES = [
   { name: 'ecommerce', prd: 'ecommerce.md', platforms: ['mobile', 'desktop'] },
   { name: 'saas', prd: 'saas.md', platforms: ['desktop'] },
   { name: 'account', prd: 'account.md', platforms: ['mobile', 'desktop'] },
+  // list-detail 是 mobile-only 复合页（desktop-template 无此页），页集与既有 fixture 不重叠 ⇒ 单独一套
+  { name: 'listdetail', prd: 'listdetail.md', platforms: ['mobile'] },
 ];
 
 export const ALL_PLATFORMS = ['mobile', 'desktop'];

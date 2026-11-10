@@ -7,12 +7,12 @@
     </div>
     <button class="absolute right-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="<%= it.copy.a11y.more %>"><i data-lucide="ellipsis" class="text-lg"></i></button>
   </header>
-  <main class="px-page pt-4 pb-20 space-y-4" id="chat-list" role="log" aria-live="polite">
+  <main class="px-page pt-4 pb-20 space-y-4 tbl:mx-auto tbl:max-w-3xl" id="chat-list" role="log" aria-live="polite">
     <% const _msgs = (it.copy.chat.messages || []).map((m) => ({ in: m.side !== 'out', text: m.text, time: m.time })); %>
     <% for (let _mi = 0; _mi < _msgs.length; _mi++) { const _m = _msgs[_mi]; %>
       <div class="flex <%= _m.in ? '' : 'flex-row-reverse' %> gap-2">
         <img src="<%= it.pick(_mi) %>" alt="<%= _m.in ? it.copy.chat.peerRole : it.copy.chat.selfRole %>" class="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
-        <div class="max-w-[70%]">
+        <div class="max-w-[70%] tbl:max-w-lg">
           <p class="mb-1 meta text-neutral-400 <%= _m.in ? 'text-left' : 'text-right' %>"><%= _m.time %></p>
           <div class="<%= _m.in ? 'bg-white text-neutral-800 ring-1 ring-neutral-200/70 rounded-tl-none' : 'bg-brand-600 text-white rounded-tr-none' %> rounded-2xl px-4 py-2.5 shadow-sm">
             <p class="text-sm leading-relaxed"><%= _m.text %></p>

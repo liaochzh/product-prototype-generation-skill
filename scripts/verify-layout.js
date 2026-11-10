@@ -16,6 +16,8 @@
  *   ④ 首屏有主内容（`main` 的首个子块顶部落在视口内）
  *   ⑤ 移动端：含底部导航的页，内容容器 `padding-bottom ≥ nav 高 + nav 下边距`（否则内容被浮层遮挡）
  *   ⑥ 桌面端：侧栏右边界 ≤ 主区左边界（否则侧栏压盖主区）
+ *   ⑦ 移动端：`html[data-size-class]` 必须等于 `resolveSizeClass(视口宽,高)`（缺属性也判红）
+ *   ⑧ 平板档（视口 ≥600）：页面声明了 `[data-grid]` 钩子时必须真的多列（`data-pane` 容器不参与）
  *
  * 用法：`node scripts/verify-layout.js`（可用 `CHROME=/path/to/chrome` 指定浏览器）
  * 退出码：0 = 全绿或已跳过；1 = 有断言失败
@@ -33,6 +35,7 @@ import { join, dirname, resolve, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { findChrome, runAssertions } from '../utils/browser-runner.js';
+import { resolveSizeClass } from '../constants.js';
 
 const SKILL_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -52,6 +55,9 @@ if (!CHROME) {
 const JOBS = [
   { platform: 'mobile', fixture: 'ecommerce.md', viewports: [{ width: 375, height: 812 }, { width: 390, height: 844 }] },
   { platform: 'mobile', fixture: 'account.md', viewports: [{ width: 375, height: 812 }, { width: 390, height: 844 }] },
+  // 平板两档：820（medium）/ 1032（expanded）—— 响应式重排的主战场；375 一并覆盖，
+  // 因为「窄档才是横向溢出高发区」这条同样适用于复合页（右 pane 隐藏后的单栏形态）。
+  { platform: 'mobile', fixture: 'listdetail.md', viewports: [{ width: 375, height: 812 }, { width: 820, height: 1180 }, { width: 1032, height: 1376 }] },
   { platform: 'desktop', fixture: 'saas.md', viewports: [{ width: 1280, height: 800 }, { width: 1440, height: 900 }] },
   { platform: 'desktop', fixture: 'account.md', viewports: [{ width: 1280, height: 800 }, { width: 1440, height: 900 }] },
 ];
@@ -102,6 +108,15 @@ async function measure(page, viewport) {
       shellPadB: shell ? Math.round(parseFloat(getComputedStyle(shell).paddingBottom)) : null,
       asideRight: aside ? Math.round(aside.getBoundingClientRect().right) : null,
       mainLeft: main ? Math.round(main.getBoundingClientRect().left) : null,
+      // 响应式契约：档位属性（仅移动端产物有）与首个**非 pane 容器**的网格列数。
+      // pane 容器（`data-pane`）在平板是单列主从布局，不参与「已多列」判定。
+      sizeClass: de.getAttribute('data-size-class'),
+      gridCols: (() => {
+        const grid = [...document.querySelectorAll('[data-grid]')].find((el) => !el.closest('[data-pane]'));
+        if (!grid) return null;
+        const tpl = getComputedStyle(grid).gridTemplateColumns;
+        return tpl && tpl !== 'none' ? tpl.split(' ').filter(Boolean).length : 0;
+      })(),
     };
   });
 }
@@ -122,6 +137,17 @@ function assertionsFor(m, platform, viewport) {
   }
   if (platform === 'desktop' && m.asideRight !== null && m.mainLeft !== null) {
     out.push([`${tag} 侧栏未压盖主区`, m.asideRight <= m.mainLeft + 1, `侧栏右=${m.asideRight} 主区左=${m.mainLeft}`]);
+  }
+  // ⑦ 响应式契约：档位属性必须与「同一张表」算出的期望一致。
+  //    仅在移动端产物上声明（desktop 不注入该属性，见 SKILL.md 分期口径）；
+  //    移动端缺属性同样判红 —— 缺字段放行会变成假绿通道。
+  if (platform === 'mobile') {
+    const want = resolveSizeClass(viewport.width, viewport.height);
+    out.push([`${tag} 尺寸类=${want}`, m.sizeClass === want, `实得 ${m.sizeClass === null ? '(缺属性)' : m.sizeClass}`]);
+  }
+  // ⑧ 平板档（≥600）页面若声明了网格钩子，必须真的多列（否则「重排」只是空承诺）。
+  if (viewport.width >= 600 && m.gridCols !== null) {
+    out.push([`${tag} 网格已多列`, m.gridCols >= 2, `列数=${m.gridCols}`]);
   }
   return out;
 }
@@ -191,18 +217,25 @@ if (process.argv.includes('--selftest')) {
 <body><aside style="position:absolute;left:0;top:0;width:300px">侧栏</aside><main>${WIDE}</main></body></html>`;
   // 绿例：⑤ 的取数口径（补偿内边距在 `main` 的**父容器**上）。没这条的话 ⑤ 改坏了也只会「更红」，
   // 分不清「闸门有效」和「闸门恒红」。离线可跑（不依赖 CDN），故安排在负例之后。
-  const mobileGood = `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1">${STUB_CSS}</head>
+  const mobileGood = `<!doctype html><html data-size-class="compact"><head><meta name="viewport" content="width=device-width, initial-scale=1">${STUB_CSS}</head>
 <body><div style="padding-bottom:112px"><main><p>正常内容</p></main></div>
 <nav aria-label="底部导航" style="position:fixed;bottom:16px;left:0;right:0;height:64px">导航</nav></body></html>`;
   // 桌面端绿例：侧栏与主区**并排**（flex，不重叠）——钉住 ⑥「侧栏未压盖主区」在正常布局下不误报
   // （负例只证明它能红，不能证明它不会恒红）。
   const desktopGood = `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1">${STUB_CSS}</head>
 <body><div style="display:flex"><aside style="width:300px;flex:none">侧栏</aside><main><p>正常内容</p></main></div></body></html>`;
+  // 平板档（≥600）的 ⑧ 双向自测：单列必须红、双列必须不误报（否则「网格已多列」可能恒真）
+  const gridBad = `<!doctype html><html data-size-class="medium"><head><meta name="viewport" content="width=device-width, initial-scale=1">${STUB_CSS}</head>
+<body><div><main><div data-grid style="display:grid;grid-template-columns:1fr">单列</div></main></div></body></html>`;
+  const gridGood = `<!doctype html><html data-size-class="medium"><head><meta name="viewport" content="width=device-width, initial-scale=1">${STUB_CSS}</head>
+<body><div><main><div data-grid style="display:grid;grid-template-columns:1fr 1fr">双列</div></main></div></body></html>`;
   const cases = [
-    ['负例', 'mobile', mobileBad, ['无横向溢出', '文本未截断', '底部导航未遮挡内容'], [{ width: 375, height: 812 }]],
+    ['负例', 'mobile', mobileBad, ['无横向溢出', '文本未截断', '底部导航未遮挡内容', '尺寸类=compact'], [{ width: 375, height: 812 }]],
     ['负例', 'desktop', desktopBad, ['无横向溢出', '侧栏未压盖主区'], [{ width: 1280, height: 800 }]],
+    ['负例', 'mobile', gridBad, ['网格已多列'], [{ width: 820, height: 1180 }]],
     ['绿例', 'mobile', mobileGood, [], [{ width: 375, height: 812 }]],
     ['绿例', 'desktop', desktopGood, [], [{ width: 1280, height: 800 }]],
+    ['绿例', 'mobile', gridGood, [], [{ width: 820, height: 1180 }]],
   ];
   let ok = true;
   for (const [kind, platform, html, mustFail, viewports] of cases) {

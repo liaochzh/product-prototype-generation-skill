@@ -10,7 +10,7 @@
     </div>
   </header>
   <main class="px-page pt-4 space-y-4">
-    <section aria-label="<%= it.copy.orders.ariaLabel.list %>" class="space-y-3">
+    <section aria-label="<%= it.copy.orders.ariaLabel.list %>" class="space-y-3 tbl:grid tbl:grid-cols-2 tbl:gap-4 tbl:space-y-0" data-grid="rows">
       <% const _orders = (it.copy.orders.cards && it.copy.orders.cards.rows) || []; %>
       <% for (let _oi = 0; _oi < _orders.length; _oi++) { const _o = _orders[_oi]; %>
         <article class="card p-4 space-y-3">
@@ -18,7 +18,7 @@
             <span class="meta"><%= _o.idLabel %> <%= _o.id %></span>
             <span class="badge <%= it.tone(_o.statusColor) %>"><%= _o.status %></span>
           </div>
-          <a href="<%= it.link('detail','list','home') %>" class="flex gap-3 active:scale-95 transition">
+          <a href="<%= it.link('detail','list','home') %>" class="flex gap-3 active:scale-95 transition tbl:items-center">
             <img src="<%= it.pick(_oi) %>" alt="<%= _o.name %>" class="h-20 w-20 shrink-0 rounded-xl object-cover" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
             <div class="flex-1 min-w-0 py-0.5">
               <h3 class="item-title line-clamp-1"><%= _o.name %></h3>

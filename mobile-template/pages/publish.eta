@@ -3,11 +3,11 @@
     <a href="<%= it.link('home','list','discover','profile') %>" class="absolute left-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="<%= it.copy.a11y.back %>"><i data-lucide="chevron-left" class="text-lg"></i></a>
     <h2 class="nav-title text-center"><%= it.copy.publish.title %></h2>
   </header>
-  <main class="px-page pt-4 pb-24 space-y-4">
+  <main class="px-page pt-4 pb-24 space-y-4 tbl:mx-auto tbl:max-w-2xl">
     <% const _ib = it.copy.publish.imageBlock; %>
     <section class="card p-4 space-y-4" aria-label="<%= _ib.ariaLabel %>">
       <h3 class="section-title"><%= _ib.title %></h3>
-      <div class="grid grid-cols-3 gap-3" id="image-grid">
+      <div class="grid grid-cols-3 gap-3 tbl:grid-cols-6" id="image-grid">
         <% for (let _i = 0; _i < (_ib.slots || 3); _i++) { %>
           <label class="relative flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 transition hover:border-brand-300 hover:bg-brand-50/40 active:scale-95">
             <input type="file" accept="image/*" class="absolute inset-0 opacity-0" aria-label="<%= (_ib.slotsAriaPrefix || '上传图片') + (_i + 1) %>" />

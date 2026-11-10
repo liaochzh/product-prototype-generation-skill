@@ -4,8 +4,8 @@
     <h2 class="nav-title text-center"><%= it.copy.detail.title %></h2>
     <button class="absolute right-4 top-[62px] grid h-10 w-10 place-items-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-neutral-200/70 active:scale-95 transition" aria-label="<%= it.copy.a11y.more %>"><i data-lucide="ellipsis" class="text-lg"></i></button>
   </header>
-  <main class="px-page pt-4 pb-32 space-y-4">
-    <section aria-label="<%= it.copy.detail.ariaLabel.gallery %>" class="relative h-72 overflow-hidden rounded-2xl">
+  <main class="px-page pt-4 pb-32 space-y-4 tbl:grid tbl:grid-cols-2 tbl:items-start tbl:gap-6 tbl:space-y-0 tbl:max-w-5xl tbl:mx-auto">
+    <section aria-label="<%= it.copy.detail.ariaLabel.gallery %>" class="relative h-72 overflow-hidden rounded-2xl tbl:h-96">
       <% const _imgs = (it.images||[]).slice(0, 3); %>
       <% for (let _i = 0; _i < _imgs.length; _i++) { %>
         <% const _src = _imgs[_i]; %>
@@ -53,7 +53,7 @@
     </section>
     <section class="space-y-3">
       <h3 class="section-title px-1"><%= it.copy.detail.related.title %></h3>
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-2 gap-3 tbl:grid-cols-4">
         <% for (let _i = 0; _i < 4; _i++) { %>
           <a href="<%= it.link('detail','list','home') %>" class="card overflow-hidden p-2 active:scale-95 transition">
             <img src="<%= (it.images||[])[_i % (it.images||[]).length] || it.placeholder %>" alt="<%= it.copy.detail.related.imgAlt %>" loading="lazy" class="h-28 w-full rounded-xl object-cover" onerror="this.onerror=null;this.src='<%= it.placeholder %>'" />
@@ -64,7 +64,7 @@
       </div>
     </section>
   </main>
-  <div class="fixed inset-x-0 bottom-0 z-20 flex gap-3 border-t border-neutral-200 bg-white/95 p-4 backdrop-blur-xl" role="toolbar" aria-label="<%= it.copy.detail.ariaLabel.bottomBar %>">
+  <div class="fixed inset-x-0 bottom-0 z-20 flex gap-3 border-t border-neutral-200 bg-white/95 p-4 backdrop-blur-xl tbl:static tbl:mx-auto tbl:mt-6 tbl:w-full tbl:max-w-5xl tbl:rounded-2xl tbl:border" role="toolbar" aria-label="<%= it.copy.detail.ariaLabel.bottomBar %>">
     <% for (const _a of (it.copy.detail.actions || [])) { %>
       <% const _cls = _a.tone === 'secondary' ? 'btn-secondary' : _a.tone === 'outline' ? 'btn-outline' : 'btn-primary'; %>
       <% if (_a.target) { %>

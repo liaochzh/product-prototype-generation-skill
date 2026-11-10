@@ -23,3 +23,12 @@
 三维实现见 `utils/copy-golden.js`，其 `stripNoise` 会剔除 `<script>`/`<style>` 区，属性维只覆盖 `aria-label/alt/placeholder/title`——**故三维门禁不覆盖** `<script>`/`<style>`/其它属性（`href`/`style`/`data-*`）/空白/几何值。这些区域的改动不破 golden，是几何与插件参数化能零破坏的基础；但**重冻时它们可能被一并固化**，故 freeze 脚本提供「结构性差异探针」（报告差异行数/样本/涉及区域），须人工核对。
 
 > 推论：改**配色/内联 Tailwind config** 属结构差异（需 `--allow-structural`），改**设计令牌但保持默认路径逐字节不变**（纯加法，如新增主题包）则干跑零差异、无需重冻。
+
+## 新增页面 SOP（二期实证：`list-detail`）
+
+1. 模板落 `mobile-template/pages/<p>.eta`；`prd-parser.js` 的 `KNOWN_PAGES` / `zhMap` / `priorityOrder` 三处登记（`INTER_10` 是**双端交集白名单**，mobile-only 页**不要**加，否则场景 17c 立刻红）。
+2. 新建 `fixtures/prd/<name>.md`，页集里带上新页；在 `utils/golden-fixtures.js` 的 `GOLDEN_FIXTURES` 登记 `{ name, prd, platforms: ['mobile'] }`——**不要**给既有 fixture 加页（`classifyFileSet` 会硬拒，理由见该文件头注释）。
+3. `node scripts/freeze-golden.js --init --only <name>` 干跑（只校验「文件集 == PRD 页面集」+「零任意字号」）→ `--write --init --only <name>` 落盘。
+4. `selfcheck` 里同轮补三处：`MOBILE_TPL.size`、场景 17c 的 `CANON` 常量表、`SKILL.md` 的「移动端可用页（N）：`a/b/…`」声明（场景 37 是机器可读正则，散文改写即红）。
+
+**二期「改既有模板 + 改 head」的实测命令**（已跑通）：`--allow-class-refactor --only ecommerce,account`（**不带 `--write`**，干跑审计）→ 判读 → `--write --allow-structural --allow-class-refactor --only ecommerce,account`。注意 `--write` 一旦门禁放行就**当场换盘**，所以「先干跑」必须是同命令去掉 `--write`，不能带 `--write` 说「只是干跑」。
