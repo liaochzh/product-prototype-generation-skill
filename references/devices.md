@@ -14,7 +14,7 @@
 - `--crease <axis>-<count>@<pos>[,<pos>][:<width>]`：覆盖折痕（位置可写 `0.5`/`50`/`50%`；`none` 表示无折痕）。例：`v-1@50:24`、`v-2@33,67:24`、`h-1@50:20`。
 - **姿态 `--posture flat|half|closed`**（**仅折叠设备**，非折叠预设给该参数 exit 1；与 `--crease` **互斥**，同给 exit 1）：`flat` → 折痕收成 1px 分割线；`half` → 预设带宽（Duo 40pt）；`closed` → 无折痕带（`crease=null`），仅在报告标注。实现走「折算成 `--crease` 规格串」的既有通道，**不改模板**。这是**外壳预览参数**，不表示运行时能判定姿态：iOS 拿不到折叠信息，页面层也不得自绘折痕避让（系统已内建「半折时推开交互元素」）。另注意 Apple 语义：division 区仅在折叠时 active，**完全展开时宽度为 0**，故 `flat` 的 1px 是人眼友好的观感近似，不是设备事实。
 - **尺寸类 `SIZE_CLASSES` / `resolveSizeClass(w,h)`**：四档 compact / medium / expanded / large（XL 并入 large），高度例外（矮于阈值的宽屏判 compact，即「宽 medium 而高 compact 不判双栏」）。**断点数值不在本文件复制**，唯一事实源是 `constants.js`；平台口径回指哲学层 §自适应布局。尺寸类进报告面（`report.device.sizeClass` / `report.frames[].sizeClass`），**同时是平板断点 `TABLET_SCREENS` 的派生源**（二期）；不改模板产物。
-- 派生属性：`verticalSpace`（逻辑高 `<700px` → `tight`，用于竖向紧凑布局）；`frameWidth/Height = 逻辑尺寸 + 2×bezel`（原实现误把物理外框当逻辑分辨率，导致 iframe 视口为虚构的 404px）；`sizeClass`；`safeInsets`（折叠内外屏逐姿态安全区，外壳暂不消费）。四个折叠预设的安全区均为【实测·运行时 2026-11-10】（Duo 内外屏、竖持/横持；覆盖屏横持的侧栏随持握侧镜像）；Duo 内屏竖持**无侧栏**（上 82 / 下 34），与「内屏横持才有右侧 84 栏」是两组不同事实。
+- 派生属性：`verticalSpace`（逻辑高 `<700px` → `tight`，用于竖向紧凑布局）；`frameWidth/Height = 逻辑尺寸 + 2×bezel`（原实现误把物理外框当逻辑分辨率，导致 iframe 视口为虚构的 404px）；`sizeClass`；`safeInsets`（逐姿态安全区，外壳暂不消费；**目前只有 Duo 内外屏带该字段**，其余折叠/直板预设无）。Duo 的四个姿态值为【实测·运行时 2026-11-10】：外屏竖持 上0/右84/下34/左0、横持 下34 + 侧栏 84（landscapeLeft→左84，landscapeRight→右84）；内屏竖持 上82/右0/下34/左0（**无侧栏**）、横持 上0/右84/下34/左0。
 - **圆角两种口径**：`cornerRadius`（单值，绝大多数机型）与 `cornerRadii`（逐角，仅 Duo 外屏这种官方按角给值的机型）。外壳消费的是派生好的 `frameRadiusCss` / `screenRadiusCss`（后者已减 `bezel` 并归零负值），模板里不再做算术。单值机型的输出与旧实现逐字节相同。
 - **外壳契约（供闸门校验）**：`section[data-device][data-aspect][data-panes][data-vertical-space]` 必须与 `generation-report.json` 的 `device` 字段一致，`layoutFail`/`creaseFail` 非 0 即 `passed:false`。`report.device.sizeClass` 须属四档枚举、`report.device.posture` 须属三档枚举（或 null）。
 
@@ -52,7 +52,7 @@
 
 **未能复核（仍单源/未测，标注保留）**：
 
-- **内屏 Split View 半边**的栏位（官方文档称栏到窗口左缘，可能出现 `left 84`）：需把 App 拖到内屏一侧，本次未测，**不得由上面的表外推**。
+- **内屏 Split View 半边**的栏位（官方文档称栏到窗口左缘，可能出现 `left 84`）：**未测，不得由上面的表外推**。补齐办法（约 30 秒）：展开态把 App 拖到内屏一侧 → 跑探针读 `window.bounds`（应约半宽）+ `safeAreaInsets` + `reserved.occlusion`（栏的位置用 `occlusion.frame.x` 交叉验证）。**自动化做不了**：进入 Split View 需要内屏上的拖拽手势，而 `simctl`/`devicectl` 都没有触摸通道，内屏触摸还要按 display id 单独投递（`mainTouchscreen(0x101)` 是外屏、`touchscreen(0x103)` 才是内屏），成本高于该字段的收益（`safeInsets` 外壳不消费）。
 - **bezel 13 / `statusBarHeight` 54 / `homeIndicator` 134×5 / `tabBarHeight` 83 / `cutout` 126×37**：属外观派生量，SDK 设备配置不提供（profile 只有 `HasThinBezel:true` 与 `DeviceSupportsDynamicIsland:true`），维持模拟器观感取值。
 
 **复核方式（可重跑）**：
