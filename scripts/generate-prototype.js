@@ -20,7 +20,7 @@ import { buildCopyPack, badgeToneClass } from '../utils/copy-domain.js';
 import { resolveDevice } from '../utils/device-profile.js';
 import { detectCapabilities, capabilityWarnings } from '../utils/preflight.js';
 import { getTheme, listThemes } from '../themes/index.js';
-import { DEVICES, ASPECT_CLASSES } from '../constants.js';
+import { DEVICES, ASPECT_CLASSES, SHELL_STAGE_PAD } from '../constants.js';
 
 const SKILL_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -57,16 +57,110 @@ if (aspectOverride && !Object.prototype.hasOwnProperty.call(ASPECT_CLASSES, aspe
   console.error(`不支持的档位：${aspectOverride}（仅支持 ${Object.keys(ASPECT_CLASSES).join(' / ')}）`);
   process.exit(1);
 }
+
+// ── 折叠姿态（--posture）：折算成 crease 覆盖，**不改 mobile-template/*.eta** ──
+// flat=1px 分割线（观感近似；Apple 语义是 division 区宽度 0）、half=预设带宽（Duo 40pt）、
+// closed=无折痕带（仅报告标注）。与 --crease 互斥：两者改同一字段，静默覆盖会撒谎。
+const POSTURES = ['flat', 'half', 'closed'];
+const postureArg = (getArg('--posture', '') || '').trim().toLowerCase();
+if (postureArg && !POSTURES.includes(postureArg)) {
+  console.error(`不支持的姿态：${postureArg}（仅支持 ${POSTURES.join(' / ')}）`);
+  process.exit(1);
+}
+if (postureArg && creaseOverride) {
+  console.error('--posture 与 --crease 互斥：两者都改折痕带，请只给一个');
+  process.exit(1);
+}
+if (postureArg && platform !== 'mobile') {
+  console.error('--posture 仅用于 mobile（桌面端无设备外壳与折痕）');
+  process.exit(1);
+}
+
+/** 姿态只对折叠形态有意义：非折叠设备给 --posture 会画出假中缝并让 data-panes 与档位互斥 */
+function assertPostureSupported(key) {
+  const preset = DEVICES[key];
+  if (!preset || !preset.crease) {
+    const folds = Object.keys(DEVICES).filter((k) => DEVICES[k].crease);
+    console.error(`--posture 仅适用于折叠设备：${key} 不是折叠形态（可用：${folds.join(', ')}）`);
+    process.exit(1);
+  }
+}
+
+/** 姿态 → --crease 规格串（复用 device-profile 的 parseCrease，不新增渲染分支）。
+ *  调用前必先 assertPostureSupported，故 DEVICES[key].crease 必然存在。 */
+function creaseSpecFor(key, posture) {
+  if (!posture) return '';
+  if (posture === 'closed') return 'none';            // parseCrease('none') → null
+  const base = DEVICES[key].crease;
+  const axis = base.axis === 'h' ? 'h' : 'v';
+  const positions = Array.isArray(base.positions) && base.positions.length ? base.positions : [0.5];
+  const width = posture === 'flat' ? 1 : base.width;
+  return `${axis}-${positions.length}@${positions.map((x) => Math.round(x * 100)).join(',')}:${width}`;
+}
+
+// ── 多帧预览（--frame-set k1,k2[,...]）：每帧额外产出根级 device-<key>.html ──
+// 帧语法 `key[:posture]`，帧级 posture 优先、缺省继承全局 --posture。
+// 契约：index.html 恒为 --device 主帧；--aspect/--device-width/height 只作用于主帧
+//（它们描述「这台设备」，套到别的设备上会产出错误几何）。
+const frameSetRaw = (getArg('--frame-set', '') || '').trim();
+const frames = [];
+if (frameSetRaw) {
+  if (platform !== 'mobile') {
+    console.error('--frame-set 仅用于 mobile（桌面端无设备外壳）');
+    process.exit(1);
+  }
+  const specs = frameSetRaw.split(',').map((s) => s.trim()).filter(Boolean);
+  if (specs.length > 4) {
+    console.error(`--frame-set 最多 4 帧，收到 ${specs.length}：${specs.join(',')}`);
+    process.exit(1);
+  }
+  const seen = new Set();
+  for (const spec of specs) {
+    const [rawKey, rawPosture] = spec.split(':');
+    const key = (rawKey || '').trim();
+    const fp = (rawPosture || '').trim().toLowerCase();
+    if (!Object.prototype.hasOwnProperty.call(DEVICES, key)) {
+      console.error(`--frame-set 未知设备：${key}（可用：${Object.keys(DEVICES).join(', ')}）`);
+      process.exit(1);
+    }
+    if (fp && !POSTURES.includes(fp)) {
+      console.error(`--frame-set 姿态非法：${fp}（仅支持 ${POSTURES.join(' / ')}）`);
+      process.exit(1);
+    }
+    if (seen.has(key)) {
+      log.prototype.warn(`--frame-set 重复设备 ${key}：产物文件名按 key 固定（device-${key}.html），已保留首次出现的帧；同一设备要对比多姿态请分两次生成`);
+      continue;
+    }
+    seen.add(key);
+    frames.push({ key, posture: fp || postureArg || null });
+  }
+}
+
 let device = null;
 if (platform === 'mobile') {
+  if (postureArg) assertPostureSupported(deviceKey);
   try {
-    device = resolveDevice({ deviceKey, aspectOverride, customW, customH, creaseOverride });
+    device = resolveDevice({
+      deviceKey, aspectOverride, customW, customH,
+      creaseOverride: postureArg ? creaseSpecFor(deviceKey, postureArg) : creaseOverride,
+    });
   } catch (e) { console.error(e.message); process.exit(1); }
   if (!device) {
     console.error(`不支持的设备：${deviceKey}（可用：${Object.keys(DEVICES).join(', ')}）`);
     process.exit(1);
   }
 }
+const frameDevices = frames.map((f) => {
+  if (f.posture) assertPostureSupported(f.key);
+  let d = null;
+  try {
+    d = resolveDevice({ deviceKey: f.key, creaseOverride: creaseSpecFor(f.key, f.posture) });
+  } catch (e) { console.error(e.message); process.exit(1); }
+  return { ...f, device: d };
+});
+
+// 帧文件名白名单：只认 `device-<DEVICES 键>.html`，避免清理时误删用户手放进 prototype/ 的同类名文件。
+const DEVICE_FRAME_RE = new RegExp(`^device-(${Object.keys(DEVICES).map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\.html$`);
 
 // 可选主题（F4-a）：只做加法——不给 --theme 时三消费点入参与旧行为完全一致。
 // 未知键**硬失败**（不静默回退）：否则「选了主题但没生效」是最难查的一类问题。
@@ -289,7 +383,7 @@ async function buildOnce() {
     return items ? `<nav class="fixed bottom-4 inset-x-page z-20 bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl rounded-3xl px-page py-3 flex justify-between" aria-label="底部导航">${items}</nav>` : '';
   };
 
-  const baseCtx = (p, extra = {}) => ({ meta, platform, page: p, title: copyNav(p), head, nav, scheme, signature, brandMark, esc: escapeHtml, link: linkFor(p), copy: copyPack, badgeTone: badgeToneClass, tone: badgeToneClass, device, ...extra });
+  const baseCtx = (p, extra = {}, dev = device) => ({ meta, platform, page: p, title: copyNav(p), head, nav, scheme, signature, brandMark, esc: escapeHtml, link: linkFor(p), copy: copyPack, badgeTone: badgeToneClass, tone: badgeToneClass, device: dev, ...extra });
 
   const renderPage = async (p) => {
     // 页集已在 buildOnce 头部按平台模板过滤（无模板的页根本不会进来）；
@@ -316,10 +410,62 @@ async function buildOnce() {
   const results = await Promise.allSettled(pages.map(renderPage));
 
   // 移动端：渲染外壳 index.html（内含 iframe 指向首屏页）
+  // 陈旧多帧产物清理（**任何平台都跑**）：上一轮 `--frame-set` 的 device-*.html / gallery.html
+  // 若不在本轮 frameDevices 内就删掉——否则换帧集（3 帧→2 帧）、切平台（mobile→desktop）都会
+  // 把旧帧混进交付，而 report.frames=[] 又让闸门跳过 frames 断言（静默残留）。
+  // 只删「设备键命名的帧文件 + gallery.html」，不碰用户自己的其它 HTML。
+  {
+    const keep = new Set(frameDevices.map((f) => `device-${f.key}.html`));
+    if (await exists(outDir)) {
+      const stale = readdirSync(outDir).filter((n) => DEVICE_FRAME_RE.test(n) || n === 'gallery.html').filter((n) => !keep.has(n));
+      for (const n of stale) {
+        try { await removeRecursive(resolve(outDir, n)); }
+        catch (e) { log.prototype.warn(`陈旧帧清理失败：${n}（${e.message}）`); }
+      }
+    }
+  }
   if (isMobile) {
     const shellHtml = await render(resolve(tplDir, LAYOUTS.shell), baseCtx('home', { pageContent: '', images, shellLink, homeHref, link: shellLink }));
     await writeFileAtomic(resolve(outDir, 'index.html'), shellHtml);
     done++; updateProgress(done / total * 100, `已生成 ${done}/${total}：外壳`);
+    // 多帧预览：每帧一份同深度外壳（相对路径与 index.html 一致），仅 --frame-set 时产出
+    for (const f of frameDevices) {
+      const html = await render(resolve(tplDir, LAYOUTS.shell), baseCtx('home', { pageContent: '', images, shellLink, homeHref, link: shellLink }, f.device));
+      await writeFileAtomic(resolve(outDir, `device-${f.key}.html`), html);
+    }
+    // gallery.html 仅随 --frame-set 产出；**不做额外缩放**（外壳内建 scale 已生效，再叠一层会双重缩小）
+    // iframe 尺寸 = 帧外框 + 外壳 body 的 p-6（SHELL_STAGE_PAD），否则每帧被裁掉 48px（bezel / 状态栏切半）。
+    // transform:scale 只缩视觉、不改布局盒，故按布局尺寸给足。
+    if (frameDevices.length) {
+      const stageW = (f) => f.device.frameWidth + SHELL_STAGE_PAD;
+      const stageH = (f) => f.device.frameHeight + SHELL_STAGE_PAD;
+      const cards = frameDevices.map((f) => `<figure class="card"><figcaption><strong>${escapeHtml(f.device.label)}</strong> · ${escapeHtml(f.device.logicalWidth)}×${escapeHtml(f.device.logicalHeight)} · ${escapeHtml(f.device.sizeClass)}${f.posture ? ` · ${escapeHtml(f.posture)}` : ''}</figcaption><iframe src="device-${escapeHtml(f.key)}.html" title="${escapeHtml(f.device.label)}" width="${stageW(f)}" height="${stageH(f)}" style="width:${stageW(f)}px;height:${stageH(f)}px" loading="lazy"></iframe></figure>`).join('\n');
+      const gallery = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeHtml(meta.productName)} · 多形态预览</title>
+<style>
+  body{margin:0;padding:24px;background:#f6f7f9;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1f2937}
+  h1{font-size:18px;margin:0 0 4px} p.note{margin:0 0 20px;color:#6b7280;font-size:12px}
+  .grid{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+  .card{margin:0;background:#fff;border-radius:12px;padding:12px;box-shadow:0 1px 2px rgb(15 23 42/.06),0 8px 24px -12px rgb(15 23 42/.18)}
+  figcaption{font-size:12px;color:#4b5563;margin-bottom:8px}
+  iframe{border:0;display:block}
+</style>
+</head>
+<body>
+<h1>多形态预览</h1>
+<p class="note">形态容器演示，不代表页面已按断点重排；多帧预览不演示状态连续性，也不演示真实多窗口/姿态事件。</p>
+<div class="grid">
+${cards}
+</div>
+</body>
+</html>
+`;
+      await writeFileAtomic(resolve(outDir, 'gallery.html'), gallery);
+    }
   }
   const failed = results.filter((r) => r.status === 'rejected');
   if (failed.length && failed.length === pages.length) throw failed[0].reason;
@@ -341,7 +487,7 @@ async function buildOnce() {
     capabilities = await detectCapabilities({ workspace: WORKSPACE });
     for (const w of capabilityWarnings(capabilities)) log.prototype.warn(w);
   }
-  const report = { success: failed.length === 0, platform, pages, skippedPages, truncatedPages, unknownPages, productType: meta.productType || 'other', theme: theme ? theme.key : null, prdSource: prdAssumptions.prdSource, assumptions: prdAssumptions.assumptions, prdWarnings: v.warnings, copySource: copy.copySource, copyType: copy.copyType, allowTerms: copy.allowTerms, capabilities, device: device ? { key: device.key, label: device.label, category: device.category, logicalWidth: device.logicalWidth, logicalHeight: device.logicalHeight, frameWidth: device.frameWidth, frameHeight: device.frameHeight, aspectClass: device.aspectClass, panes: device.panes, verticalSpace: device.verticalSpace, statusBarHeight: device.statusBarHeight, crease: device.crease } : null, files: files.length, totalSize, imgCount, duration, warnings: failed.map((f) => String(f.reason?.message)), at: new Date().toISOString() };
+  const report = { success: failed.length === 0, platform, pages, skippedPages, truncatedPages, unknownPages, productType: meta.productType || 'other', theme: theme ? theme.key : null, prdSource: prdAssumptions.prdSource, assumptions: prdAssumptions.assumptions, prdWarnings: v.warnings, copySource: copy.copySource, copyType: copy.copyType, allowTerms: copy.allowTerms, capabilities, device: device ? { key: device.key, label: device.label, category: device.category, logicalWidth: device.logicalWidth, logicalHeight: device.logicalHeight, frameWidth: device.frameWidth, frameHeight: device.frameHeight, aspectClass: device.aspectClass, sizeClass: device.sizeClass, panes: device.panes, verticalSpace: device.verticalSpace, statusBarHeight: device.statusBarHeight, crease: device.crease, posture: postureArg || null } : null, frames: frameDevices.map((f) => ({ key: f.key, label: f.device.label, sizeClass: f.device.sizeClass, aspectClass: f.device.aspectClass, panes: f.device.panes, frameWidth: f.device.frameWidth, frameHeight: f.device.frameHeight, posture: f.posture, note: '形态容器，非布局结论' })), files: files.length, totalSize, imgCount, duration, warnings: failed.map((f) => String(f.reason?.message)), at: new Date().toISOString() };
   await writeFileAtomic(resolve(outDir, 'generation-report.json'), JSON.stringify(report, null, 2));
   succeedProgress(`原型生成完成：${outDir}（${files.length} 个页面，${(totalSize/1024).toFixed(1)} KB，${imgCount} 张图，${duration}ms）`);
   console.log(`\n预览：直接用浏览器打开 ${resolve(outDir, 'index.html')}\nPRD：${prdPath}\n`);

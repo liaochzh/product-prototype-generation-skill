@@ -8,7 +8,7 @@
  *   --crease              → 覆盖预设折痕
  * 无任何覆盖时取默认设备 iphone16。
  */
-import { DEVICES, ASPECT_CLASSES, deviceFrame, resolvePanes } from '../constants.js';
+import { DEVICES, ASPECT_CLASSES, deviceFrame, resolvePanes, resolveSizeClass } from '../constants.js';
 
 const DEFAULT_DEVICE = 'iphone16';
 // 以下为「预设缺字段」时的兜底值，与 DEVICES.iphone16 对齐
@@ -87,6 +87,10 @@ export function resolveDevice({ deviceKey, aspectOverride, customW, customH, cre
     homeIndicator: ref.homeIndicator ?? null,
     tabBarHeight: ref.tabBarHeight ?? FALLBACK_TAB_BAR,
     crease,
+    // 尺寸类仅作报告面/文档口径，模板不消费（ASPECT_CLASSES 仍决定骨架）
+    sizeClass: resolveSizeClass(w, h),
+    // 尺寸被覆盖时不得沿用预设机型的逐姿态安全区（否则与 label 的「诚实标注」口径不一）
+    safeInsets: sizeOverridden ? null : (ref.safeInsets ?? null),
     ...geom,
     panes,
     aspectClass,

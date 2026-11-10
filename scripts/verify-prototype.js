@@ -8,6 +8,7 @@ import { checkInlineTailwindConfig } from '../utils/inspect-tailwind-inline.js';
 import { assertCopyDomain } from '../utils/copy-domain.js';
 import { stripNoise } from '../utils/copy-golden.js';
 import { measureConsistency } from '../utils/consistency.js';
+import { SHELL_STAGE_PAD } from '../constants.js';
 
 const WORKSPACE = process.env.WORKSPACE || process.cwd();
 const outDir = resolve(WORKSPACE, 'prototype');
@@ -120,6 +121,70 @@ if (deviceInfo) {
     const creaseDivs = (shell.match(/class="crease-line"/g) || []).length;
     const expectCrease = deviceInfo.crease ? deviceInfo.crease.positions.length : 0;
     if (creaseDivs !== expectCrease) { creaseFail++; log.verify.error(`外壳折痕数 ${creaseDivs} ≠ 期望 ${expectCrease}`); }
+    // 尺寸类：报告口径（不改模板产物）。缺字段 = 旧产物 → 仅告警不判死。
+    if (deviceInfo.sizeClass === undefined) {
+      log.verify.warn('generation-report.json 缺 device.sizeClass（旧产物），跳过尺寸类断言');
+    } else if (!['compact', 'medium', 'expanded', 'large'].includes(deviceInfo.sizeClass)) {
+      layoutFail++; log.verify.error(`device.sizeClass=${deviceInfo.sizeClass} 不在 compact/medium/expanded/large 之内`);
+    }
+    // 姿态：缺省 null 合法；给了就必须是枚举值
+    if (deviceInfo.posture !== undefined && deviceInfo.posture !== null && !['flat', 'half', 'closed'].includes(deviceInfo.posture)) {
+      layoutFail++; log.verify.error(`device.posture=${deviceInfo.posture} 不在 flat/half/closed 之内`);
+    }
+  }
+}
+
+// 多帧预览：仅在报告带非空 frames 时生效（缺省一个文件都不追加 ⇒ 不影响既有产物）
+const frameList = genReport && Array.isArray(genReport.frames) ? genReport.frames : [];
+if (frameList.length) {
+  for (const fr of frameList) {
+    const rel = `device-${fr.key}.html`;
+    const html = await readFileSafe(resolve(outDir, rel)).catch(() => null);
+    if (!html) { layoutFail++; log.verify.error(`多帧预览缺文件：${rel}`); continue; }
+    const attr = (n) => { const m = new RegExp(`\\s${n}="([^"]*)"`).exec(html); return m ? m[1] : null; };
+    if (attr('data-device') !== fr.key) { layoutFail++; log.verify.error(`${rel} data-device=${attr('data-device')} ≠ 报告 ${fr.key}`); }
+    if (attr('data-aspect') !== fr.aspectClass) { layoutFail++; log.verify.error(`${rel} data-aspect=${attr('data-aspect')} ≠ 报告 ${fr.aspectClass}`); }
+    if (attr('data-panes') !== String(fr.panes)) { layoutFail++; log.verify.error(`${rel} data-panes=${attr('data-panes')} ≠ 报告 ${fr.panes}`); }
+    // 帧级枚举与几何：报告口径也要守住，否则「帧报告」与「帧 DOM」可各说各话
+    if (!['compact', 'medium', 'expanded', 'large'].includes(fr.sizeClass)) {
+      layoutFail++; log.verify.error(`${rel} 报告 sizeClass=${fr.sizeClass} 不在四档枚举内`);
+    }
+    // 与主帧同口径：缺字段（旧产物）放行，给了就必须合法（null = 无姿态）
+    if (fr.posture !== undefined && fr.posture !== null && !['flat', 'half', 'closed'].includes(fr.posture)) {
+      layoutFail++; log.verify.error(`${rel} 报告 posture=${fr.posture} 不在三档枚举内`);
+    }
+  }
+  const gallery = await readFileSafe(resolve(outDir, 'gallery.html')).catch(() => null);
+  if (!gallery) { layoutFail++; log.verify.error('报告含 frames 但缺 gallery.html'); }
+  else {
+    // 画廊 iframe 必须**逐帧**带足尺寸：不写尺寸会退成 300×150；只写 frameWidth 又会少掉
+    // 外壳 body 的 p-6（48px），每帧被裁一圈。期望值 = 报告 frameWidth/Height + SHELL_STAGE_PAD。
+    const iframesInGallery = (gallery.match(/<iframe\b[^>]*>/g) || []);
+    if (iframesInGallery.length !== frameList.length) {
+      layoutFail++; log.verify.error(`gallery.html 的 iframe 数 ${iframesInGallery.length} ≠ 报告帧数 ${frameList.length}`);
+    } else {
+      frameList.forEach((fr, i) => {
+        const tag = iframesInGallery[i];
+        const src = (/src="([^"]*)"/.exec(tag) || [])[1];
+        const w = Number((/width="(\d+)"/.exec(tag) || [])[1]);
+        const h = Number((/height="(\d+)"/.exec(tag) || [])[1]);
+        if (src !== `device-${fr.key}.html`) {
+          layoutFail++; log.verify.error(`gallery.html 第 ${i + 1} 帧 src=${src} ≠ device-${fr.key}.html（帧序与报告不一致）`);
+        }
+        // 老报告没有 frameWidth → 只要求存在正尺寸；新报告按精确值断言，防「少 48px」这类静默裁切
+        if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
+          layoutFail++; log.verify.error(`gallery.html 第 ${i + 1} 帧缺有效 width/height`);
+          return;
+        }
+        if (Number.isFinite(fr.frameWidth) && Number.isFinite(fr.frameHeight)) {
+          const wantW = fr.frameWidth + SHELL_STAGE_PAD;
+          const wantH = fr.frameHeight + SHELL_STAGE_PAD;
+          if (w !== wantW || h !== wantH) {
+            layoutFail++; log.verify.error(`gallery.html 第 ${i + 1} 帧 ${w}×${h} ≠ 期望 ${wantW}×${wantH}（帧外框 + 舞台内边距）`);
+          }
+        }
+      });
+    }
   }
 }
 

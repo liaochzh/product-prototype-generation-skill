@@ -22,7 +22,7 @@ import { assertLexiconConformance, buildCopyPack, assertCopyDomain, COPY_LEXICON
 import { compareDirs, DEFAULT_DIMS, normalizeText, normalizeAttrs } from '../utils/copy-golden.js';
 import { gateClasses, gateRawClasses, structuralDiff, countArbitrarySizes, TOKEN_SIZE_RE, arbScanRe } from '../utils/golden-gate.js';
 import { decideFreeze, classifyFileSet } from './freeze-golden.js';
-import { PRODUCT_TYPES, DEVICES, ASPECT_CLASSES, deviceFrame, TYPE_ROLES, fontSize, fontFamily, fontStacks } from '../constants.js';
+import { PRODUCT_TYPES, DEVICES, ASPECT_CLASSES, SIZE_CLASSES, SHELL_STAGE_PAD, deviceFrame, resolveSizeClass, TYPE_ROLES, fontSize, fontFamily, fontStacks } from '../constants.js';
 import { resolveDevice, parseCrease } from '../utils/device-profile.js';
 import { parsePRD, validatePRD, getPagePriority, parseDoc, INTER_10, extractUnknownPageNames, KNOWN_PAGES } from '../utils/prd-parser.js';
 import { buildPRDFromTemplate } from '../utils/prompt-engine.js';
@@ -734,13 +734,16 @@ ${['home', 'discover', 'list', 'detail', 'publish', 'chat', 'orders', 'profile',
 }
 
 // ---- 场景 21：设备表与档位判定自洽性（表驱动，防阈值回归） ----
-// WHY：档位判定若用纯比例分档，iPhone Duo 外屏(466×678, 0.687) 与内屏(626×890, 0.703)
-// 比例仅差 0.016 却应分属单栏/双栏 → 必须用「逻辑宽度主判据」。此处把 13 款设备的
+// WHY：档位判定若用纯比例分档，iPhone Duo 外屏(466×678, 0.687) 与内屏(669×951, 0.703)
+// 比例仅差 0.016 却应分属单栏/双栏 → 必须用「逻辑宽度主判据」。此处把 17 款设备的
 // 归档期望写成用例表，任何阈值改动导致误判都会在此暴露。
+// 注：ipad-pro-13 的尺寸类属 expanded、另两款平板属 medium，但三款竖屏 ASPECT_CLASSES 都判
+// pane（2 栏）—— 尺寸类与布局档位是两套口径，勿把 sizeClass 期望混进本表。
 {
   const EXPECT = {
     iphone16: ['phone', 1, 'normal'],
     'iphone16-pro-max': ['phone', 1, 'normal'],
+    'iphone18-pro': ['phone', 1, 'normal'],
     'android-bar': ['phone', 1, 'normal'],
     'iphone-duo-cover': ['phone', 1, 'tight'],
     'iphone-duo-inner': ['pane', 2, 'normal'],
@@ -752,6 +755,9 @@ ${['home', 'discover', 'list', 'detail', 'publish', 'chat', 'orders', 'profile',
     'matext-2screen': ['pane', 2, 'normal'],
     'matext-3screen': ['pane', 3, 'normal'],  // 双竖折痕 → 3 栏
     purax: ['wide', 2, 'tight'],
+    'ipad-air-11': ['pane', 2, 'normal'],
+    'ipad-pro-13': ['pane', 2, 'normal'],
+    'android-tablet': ['pane', 2, 'normal'],
   };
   const rows = [];
   for (const [key, d] of Object.entries(DEVICES)) {
@@ -770,9 +776,27 @@ ${['home', 'discover', 'list', 'detail', 'publish', 'chat', 'orders', 'profile',
   check('设备表归档自洽（全部设备命中期望档位/栏数/垂直空间）', rows.length === 0 && unmapped.length === 0,
     `${rows.join('\n')}${unmapped.length ? `\n未写期望: ${unmapped.join(',')}` : ''}`);
 
-  const rCustom = resolveDevice({ deviceKey: 'iphone16', customW: 626, customH: 890 });
-  check('自定义 626×890 → pane 档 2 栏', !!rCustom && rCustom.aspectClass === 'pane' && rCustom.panes === 2,
+  const rCustom = resolveDevice({ deviceKey: 'iphone16', customW: 669, customH: 951 });
+  check('自定义 669×951 → pane 档 2 栏', !!rCustom && rCustom.aspectClass === 'pane' && rCustom.panes === 2,
     JSON.stringify(rCustom && { a: rCustom.aspectClass, p: rCustom.panes }));
+  // 尺寸类（报告面口径，不改骨架）：两维判定 + 高度例外 h ≤ 479
+  const scCases = [
+    [1024, 1366, 'expanded'], [820, 1180, 'medium'], [669, 951, 'medium'],
+    [1600, 900, 'large'], [800, 400, 'compact'], [390, 844, 'compact'],
+    // 边界成对用例（599/600、839/840、1199/1200、479/480）——表驱动后靠这对锁住 <= 语义
+    [599, 800, 'compact'], [600, 800, 'medium'],
+    [839, 800, 'medium'], [840, 800, 'expanded'],
+    [1199, 800, 'expanded'], [1200, 800, 'large'],
+    [900, 479, 'compact'], [900, 480, 'expanded'],
+  ];
+  const scBad = scCases.filter(([w, h, want]) => resolveSizeClass(w, h) !== want)
+    .map(([w, h, want]) => `${w}×${h}→${resolveSizeClass(w, h)}≠${want}`);
+  check('resolveSizeClass 两维判定（含 h≤479 高度例外、XL 并入 large、四组边界成对）', scBad.length === 0, `失败: ${scBad.join(', ')}`);
+  // 表自身自洽：顺序即由窄到宽，maxWidth 严格递增（否则 resolveSizeClass 的早退会错档）
+  const scEntries = Object.entries(SIZE_CLASSES);
+  const scOrderOk = scEntries.every(([, d], i) => i === 0 || d.maxWidth > scEntries[i - 1][1].maxWidth);
+  check('SIZE_CLASSES 的 maxWidth 严格递增（早退判档依赖顺序）', scOrderOk,
+    JSON.stringify(scEntries.map(([k, d]) => [k, d.maxWidth])));
   const rForce = resolveDevice({ deviceKey: 'iphone16', aspectOverride: 'wide' });
   check('aspectOverride 强制 wide 档', !!rForce && rForce.aspectClass === 'wide' && rForce.layoutConstraint === 'dual|triple',
     JSON.stringify(rForce && { a: rForce.aspectClass, l: rForce.layoutConstraint }));
@@ -2355,6 +2379,120 @@ ${body}
     c.consistencyFail >= 1 && c.passed === false && c.consistency.gutterDeltaMax === 0,
     JSON.stringify({ cf: c.consistencyFail, delta: c.consistency && c.consistency.gutterDeltaMax }));
   rmSync(ws, { recursive: true, force: true });
+}
+
+// ---- 场景 42：多帧预览 + 姿态参数（正负例，证明非假绿）----
+// WHY：`--frame-set` / `--posture` 都是一期的「纯加法」承诺 —— 缺省时一个文件都不追加、
+// 一个字节都不改。只测「给了参数能产出」会漏掉缺省回归，故本块先测缺省、再测正例、
+// 最后注入真实篡改证明 verify 的 frames 断言确实置位。
+{
+  // (a) 缺省零回归：不产出 device-*.html / gallery.html，报告无 frames 条目
+  const ws0 = newWs(FULL_PRD);
+  run(GEN, ws0, ['--platform', 'mobile', '--quiet']);
+  const rep0 = JSON.parse(read(join(ws0, 'prototype', 'generation-report.json')));
+  const extra0 = readdirSync(join(ws0, 'prototype')).filter((f) => /^device-|^gallery\.html$/.test(f));
+  check('缺省不产出多帧文件（device-*.html / gallery.html 均为空）',
+    extra0.length === 0 && Array.isArray(rep0.frames) && rep0.frames.length === 0 && rep0.device.posture === null,
+    JSON.stringify({ extra: extra0, frames: rep0.frames, posture: rep0.device.posture }));
+  check('缺省报告补 sizeClass（主帧有尺寸类口径）', rep0.device.sizeClass === 'compact',
+    JSON.stringify({ sizeClass: rep0.device.sizeClass }));
+  rmSync(ws0, { recursive: true, force: true });
+
+  // (b) 正例：三帧（含帧级姿态）+ gallery，报告与 DOM 一致
+  const ws = newWs(FULL_PRD);
+  run(GEN, ws, ['--platform', 'mobile', '--frame-set', 'iphone16,ipad-air-11,iphone-duo-inner:half', '--quiet']);
+  const rep = JSON.parse(read(join(ws, 'prototype', 'generation-report.json')));
+  const made = readdirSync(join(ws, 'prototype')).filter((f) => /^device-|^gallery\.html$/.test(f)).sort();
+  check('--frame-set 产出 3 份 device-*.html + gallery.html',
+    made.length === 4 && made.includes('device-iphone16.html') && made.includes('device-ipad-air-11.html')
+      && made.includes('device-iphone-duo-inner.html') && made.includes('gallery.html'),
+    JSON.stringify(made));
+  check('报告 frames 与帧数/档位一致（含帧级 posture 覆盖）',
+    rep.frames.length === 3 && rep.frames[1].key === 'ipad-air-11' && rep.frames[1].sizeClass === 'medium'
+      && rep.frames[2].posture === 'half' && rep.frames[2].note === '形态容器，非布局结论',
+    JSON.stringify(rep.frames));
+  const vBase = verifyJson(ws);
+  check('多帧基线：layoutFail===0 且 passed', vBase.layoutFail === 0 && vBase.passed === true,
+    JSON.stringify({ lf: vBase.layoutFail }));
+
+  // (b2) gallery 尺寸必须逐帧精确（= 帧外框 + 外壳 p-6 舞台内边距），并证明该断言会红
+  const galPath = join(ws, 'prototype', 'gallery.html');
+  const gal = read(galPath);
+  const galSizes = [...gal.matchAll(/<iframe\b[^>]*?width="(\d+)"[^>]*?height="(\d+)"/g)]
+    .map((m) => [Number(m[1]), Number(m[2])]);
+  const wantSizes = rep.frames.map((f) => [f.frameWidth + SHELL_STAGE_PAD, f.frameHeight + SHELL_STAGE_PAD]);
+  check('gallery 每帧 iframe = frameWidth/Height + 舞台内边距（不被裁 48px）',
+    galSizes.length === 3 && JSON.stringify(galSizes) === JSON.stringify(wantSizes),
+    JSON.stringify({ got: galSizes, want: wantSizes }));
+  const galBad = gal.replace(/width="(\d+)"/, (m, w) => `width="${Number(w) - SHELL_STAGE_PAD}"`);
+  check('gallery 断言负例：注入点存在（iframe width 未被静默漏改）', galBad !== gal, 'gallery 未命中 width 属性');
+  writeFileSync(galPath, galBad);
+  const vGal = verifyJson(ws);
+  check('gallery iframe 少 SHELL_STAGE_PAD → layoutFail>=1 且 passed:false',
+    vGal.layoutFail >= 1 && vGal.passed === false, JSON.stringify({ lf: vGal.layoutFail }));
+  writeFileSync(galPath, gal);   // 复原，隔离后续篡改
+
+  // (c) 负例：篡改 frames[0].key → 报告与落盘文件不一致，必须 layoutFail
+  const repPath = join(ws, 'prototype', 'generation-report.json');
+  const tampered = JSON.parse(read(repPath));
+  tampered.frames[0].key = 'ipad-pro-13';
+  writeFileSync(repPath, JSON.stringify(tampered));
+  const vBad = verifyJson(ws);
+  check('篡改 frames[i].key → layoutFail>=1 且 passed:false（frames 断言非假绿）',
+    vBad.layoutFail >= 1 && vBad.passed === false, JSON.stringify({ lf: vBad.layoutFail }));
+
+  // (c2) 负例：key 复原、只篡改栏数 —— 证明 DOM 属性比对本身会红（不是只靠「缺文件」那一支）
+  const repPath2 = join(ws, 'prototype', 'generation-report.json');
+  const tampered2 = JSON.parse(read(repPath2));
+  tampered2.frames[0].key = 'iphone16';
+  tampered2.frames[0].panes = 3;
+  writeFileSync(repPath2, JSON.stringify(tampered2));
+  const vBad2 = verifyJson(ws);
+  check('篡改 frames[i].panes（key 不变）→ layoutFail>=1 且 passed:false',
+    vBad2.layoutFail >= 1 && vBad2.passed === false, JSON.stringify({ lf: vBad2.layoutFail }));
+
+  // (c3) 陈旧产物清理：上一次带 --frame-set，这次不给 —— 旧 device-*.html / gallery.html 必须被清掉
+  //      WHY：生成器不清旧产物，残留帧会混进交付；而 report.frames=[] 会让 verify 跳过 frames 断言（静默残留）。
+  run(GEN, ws, ['--platform', 'mobile', '--quiet']);
+  const after = readdirSync(join(ws, 'prototype')).filter((f) => /^device-.*\.html$/.test(f) || f === 'gallery.html');
+  check('缺省重跑清掉陈旧多帧产物（不静默残留）', after.length === 0, JSON.stringify(after));
+  // 切平台同病：先 mobile --frame-set 再 desktop，设备帧与 gallery 必须清掉（否则混进桌面交付）
+  run(GEN, ws, ['--platform', 'mobile', '--frame-set', 'iphone16,ipad-air-11', '--quiet']);
+  const deskSwitch = run(GEN, ws, ['--platform', 'desktop', '--quiet']);
+  const afterSwitch = readdirSync(join(ws, 'prototype')).filter((f) => /^device-.*\.html$/.test(f) || f === 'gallery.html');
+  check('mobile→desktop 切换也清掉上一轮帧产物', deskSwitch.status === 0 && afterSwitch.length === 0,
+    JSON.stringify({ status: deskSwitch.status, left: afterSwitch }));
+
+  // (d) 负例：--posture 与 --crease 互斥、非折叠设备、帧数上限、未知帧键都必须 exit 1
+  const clash = run(GEN, ws, ['--platform', 'mobile', '--posture', 'half', '--crease', 'v-1@50:24', '--quiet']);
+  check('--posture 与 --crease 同给 → exit 1', clash.status === 1, `status=${clash.status}`);
+  const nonFold = run(GEN, ws, ['--platform', 'mobile', '--device', 'ipad-air-11', '--posture', 'half', '--quiet']);
+  check('--posture 用于非折叠设备（ipad-air-11）→ exit 1', nonFold.status === 1, `status=${nonFold.status}`);
+  const nonFoldFrame = run(GEN, ws, ['--platform', 'mobile', '--frame-set', 'iphone16,ipad-air-11:half', '--quiet']);
+  check('--frame-set 帧级 posture 用于非折叠帧 → exit 1', nonFoldFrame.status === 1, `status=${nonFoldFrame.status}`);
+  const tooMany = run(GEN, ws, ['--platform', 'mobile', '--frame-set', 'iphone16,ipad-air-11,ipad-pro-13,android-tablet,iphone-duo-cover', '--quiet']);
+  check('--frame-set 超过 4 帧 → exit 1', tooMany.status === 1, `status=${tooMany.status}`);
+  const unknown = run(GEN, ws, ['--platform', 'mobile', '--frame-set', 'no-such-device', '--quiet']);
+  check('--frame-set 未知设备 → exit 1', unknown.status === 1, `status=${unknown.status}`);
+  const desk = run(GEN, ws, ['--platform', 'desktop', '--frame-set', 'iphone16', '--quiet']);
+  check('--frame-set 用于 desktop → exit 1', desk.status === 1, `status=${desk.status}`);
+  // 同设备多姿态：文件名按 key 固定，故只能保留第一帧（必须 warn，不静默丢）
+  const dup = run(GEN, ws, ['--platform', 'mobile', '--frame-set', 'iphone-duo-inner:flat,iphone-duo-inner:half', '--quiet']);
+  const dupRep = JSON.parse(read(join(ws, 'prototype', 'generation-report.json')));
+  check('--frame-set 同设备多姿态 → 去重为 1 帧并 exit 0（不产同名冲突文件）',
+    dup.status === 0 && dupRep.frames.length === 1 && dupRep.frames[0].posture === 'flat',
+    JSON.stringify({ status: dup.status, frames: dupRep.frames }));
+  rmSync(ws, { recursive: true, force: true });
+
+  // (e) 正例：闭合姿态 → 折痕带消失（crease=null），且报告标注 posture
+  const ws2 = newWs(FULL_PRD);
+  run(GEN, ws2, ['--platform', 'mobile', '--device', 'iphone-duo-inner', '--posture', 'closed', '--quiet']);
+  const rep2 = JSON.parse(read(join(ws2, 'prototype', 'generation-report.json')));
+  const shell2 = read(join(ws2, 'prototype', 'index.html'));
+  check('--posture closed → 无折痕元素、报告 posture=closed',
+    (shell2.match(/class="crease-line"/g) || []).length === 0 && rep2.device.posture === 'closed' && rep2.device.crease === null,
+    JSON.stringify({ posture: rep2.device.posture, crease: rep2.device.crease }));
+  rmSync(ws2, { recursive: true, force: true });
 }
 
 // ---- 汇总 ----

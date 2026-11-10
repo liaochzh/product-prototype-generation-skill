@@ -387,7 +387,9 @@ export const TYPE_ROLES = {
  *               × cutout（挖孔，决定顶部安全区）
  *
  * 档位以「逻辑宽度」为主判据：<600px 单栏，≥600px 按宽高比分 pane/wide。
- * WHY 不用纯比例：iPhone Duo 外屏（466×678，0.687）与内屏（626×890，0.703）
+ * **直板预设为代表尺寸，不追新**：机型表只保证「有可画的代表尺寸」，缺表不等于不支持；
+ * 新机型按官方规格页核得 logicalWidth/Height 后再补，折叠档随新形态发布补齐。
+ * WHY 不用纯比例：iPhone Duo 外屏（466×678，0.687）与内屏（669×951，0.703）
  * 比例仅差 0.016，却应分属单栏/双栏 —— 比例分档必然误判。
  * ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -408,6 +410,37 @@ export function resolveAspectClass(w, h) {
 }
 
 const TIGHT_HEIGHT = 700;   // 逻辑高低于此值 → verticalSpace='tight'（竖向紧凑布局）
+
+/* ── 尺寸类（宽高两维，官方口径）────────────────────────────────────────────
+ * 与 ASPECT_CLASSES 的分工：ASPECT_CLASSES 决定「页面骨架用哪套」（单栏/双栏/横排），
+ * SIZE_CLASSES 只作**报告面与预览口径**（generation-report.json / 文档），不改模板产物。
+ * 断点取 Android 窗口尺寸类（宽度 compact/medium/expanded/large，XL 并入 large；
+ * 高度 compact 另有一档阈值），本表是**唯一事实源**，resolveSizeClass 直接读它。
+ * iOS 参考：size class 只有 compact/regular，不认固定断点（Apple Tech Talk 111461），
+ * 故本表**仅作原型演示口径**，不得表述为 iOS 实现判据。
+ */
+export const SIZE_CLASSES = {
+  // 区间由 maxWidth 单值定义，不另写 minWidth（双写易漂移）：[0,599] / [600,839] / [840,1199] / [1200,∞)
+  compact:  { maxWidth: 599,      maxHeight: 479 },
+  medium:   { maxWidth: 839 },
+  expanded: { maxWidth: 1199 },
+  large:    { maxWidth: Infinity },
+};
+
+/* 外壳舞台内边距：`layout-shell.eta` 的 body 用 `p-6`（24px × 2）。
+ * gallery.html 用 iframe 套整份外壳页，iframe 视口必须容得下「帧外框 + 两侧内边距」，
+ * 否则每帧被切掉 48px（bezel 与状态栏被裁）。生成与校验必须共用本常量。 */
+export const SHELL_STAGE_PAD = 48;
+
+/** 由逻辑宽高判定尺寸类（两维，不看方向；h 矮于 compact.maxHeight 一律 compact） */
+export function resolveSizeClass(w, h) {
+  if (!Number.isFinite(w) || !Number.isFinite(h)) return 'compact';
+  if (Number.isFinite(SIZE_CLASSES.compact.maxHeight) && h <= SIZE_CLASSES.compact.maxHeight) return 'compact';
+  for (const [key, def] of Object.entries(SIZE_CLASSES)) {
+    if (w <= def.maxWidth) return key;
+  }
+  return 'large';
+}
 
 /**
  * 设备预设表。数据等级标注：
@@ -432,11 +465,48 @@ export const DEVICES = {
     statusBarHeight: 54, homeIndicator: { width: 134, height: 5, bottom: 10 },
     tabBarHeight: 83, crease: null,
   },
+  'iphone18-pro': {
+    label: 'iPhone 18 Pro', category: 'bar',
+    logicalWidth: 402, logicalHeight: 874,          // 【官方】6.3" 2622×1206 @3x 460ppi（support.apple.com/zh-cn/148590）
+    // 以下派生量官方未公布，【估计·复用同档】照搬 iphone16 / iphone16-pro-max
+    bezel: 13, cornerRadius: 58,
+    cutout: { type: 'dynamicIsland', width: 126, height: 37, radius: 20 },
+    statusBarHeight: 54, homeIndicator: { width: 134, height: 5, bottom: 10 },
+    tabBarHeight: 83, crease: null,
+  },
+  // 注：iPhone 18 Pro Max（6.9" 2868×1320 ⇒ 440×956）与 iphone16-pro-max 同尺寸，不单列键。
   'android-bar': {
     label: 'Android 直板（通用）', category: 'bar',
     logicalWidth: 360, logicalHeight: 800,          //【媒体】2026 最主流 CSS 视口
     bezel: 10, cornerRadius: 40,
     cutout: { type: 'punchHole', size: 12 },
+    statusBarHeight: 32, navBarHeight: 24,
+    tabBarHeight: 80, crease: null,
+  },
+
+  // ── 平板（形态容器：演示「同一 App 在大屏长什么样」，不代表页面已按断点重排）──
+  'ipad-air-11': {
+    label: 'iPad Air 11"', category: 'tablet',
+    logicalWidth: 820, logicalHeight: 1180,         //【官方】11" 1640×2360 @2x 264ppi
+    // 以下派生量【估计·同档复用】：iPad 系列无刘海、圆角约 18、状态栏较薄
+    bezel: 18, cornerRadius: 18,
+    cutout: { type: 'none', size: 0 },
+    statusBarHeight: 24, homeIndicator: { width: 134, height: 5, bottom: 8 },
+    tabBarHeight: 64, crease: null,
+  },
+  'ipad-pro-13': {
+    label: 'iPad Pro 13"', category: 'tablet',
+    logicalWidth: 1032, logicalHeight: 1376,        //【官方】13" 2064×2752 @2x 264ppi
+    bezel: 14, cornerRadius: 18,                    //【估计·同档复用】
+    cutout: { type: 'none', size: 0 },
+    statusBarHeight: 24, homeIndicator: { width: 134, height: 5, bottom: 8 },
+    tabBarHeight: 64, crease: null,
+  },
+  'android-tablet': {
+    label: 'Android 平板（通用）', category: 'tablet',
+    logicalWidth: 800, logicalHeight: 1280,         //【媒体】10" 级 2560×1600 @2x ≈ sw800dp
+    bezel: 16, cornerRadius: 24,                    //【估计·同档复用】
+    cutout: { type: 'punchHole', size: 10 },
     statusBarHeight: 32, navBarHeight: 24,
     tabBarHeight: 80, crease: null,
   },
@@ -452,13 +522,24 @@ export const DEVICES = {
   },
   'iphone-duo-inner': {
     label: 'iPhone Duo 内屏', category: 'fold-inner',
-    logicalWidth: 626, logicalHeight: 890,          //【推导】1878×2670 ÷3；官方 7.6" 430ppi
+    // 【实测·单源】2026-11-04 模拟器：2007×2853 @3x ⇒ 669×951（nativeScale=3.0）。
+    // 勿写「1878×2670 ÷3」= 626×890：官方 1878×2670@430ppi 是物理/营销分辨率，物理÷scale ≠ 逻辑尺寸
+    // （iPhone 6 Plus 同型：物理 1080×1920、渲染 1242×2208@3x）。Apple 从不公布 pt 值，
+    // 第三方分辨率站亦照 ÷3 推得 626，故不可作反证。构建前须真机复核（见 docs/plan 未决项）。
+    logicalWidth: 669, logicalHeight: 951,
     bezel: 13, cornerRadius: 55,
     cutout: { type: 'dynamicIsland', width: 126, height: 37, radius: 20 },
     statusBarHeight: 54, homeIndicator: { width: 134, height: 5, bottom: 10 },
     tabBarHeight: 83,
-    //【估计】官方未公布折痕宽度；媒体称"视觉上几乎消除"，保守取 22px，实测后可调
-    crease: { axis: 'v', positions: [0.5], width: 22 },
+    // 【实测·模拟器 2026-11-04】半折保留区带 40pt（=20+20）。注意 Apple 语义：division 区仅在
+    // 折叠时 active，完全展开时宽度为 0 —— 本值只用于「半折预览」，展开态由 --posture flat 收成 1px。
+    crease: { axis: 'v', positions: [0.5], width: 40 },
+    // 【实测·模拟器 2026-11-04】逐姿态安全区（上/右/下/左）。外壳暂不消费，供实现层参考；
+    // 禁止由一侧推算另一侧（Apple：safe area 与 margin 常不对称）。
+    safeInsets: {
+      portrait: { top: 82, right: 34, bottom: 0, left: 0 },
+      landscape: { top: 0, right: 34, bottom: 0, left: 84 },
+    },
     layoutHint: 'two-pane',
   },
 
