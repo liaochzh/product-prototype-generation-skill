@@ -2465,6 +2465,33 @@ ${body}
   check('mobile→desktop 切换也清掉上一轮帧产物', deskSwitch.status === 0 && afterSwitch.length === 0,
     JSON.stringify({ status: deskSwitch.status, left: afterSwitch }));
 
+  // (c4) 逐角圆角：Duo 外屏官方按角给值（折痕侧两角 8 / 外缘两角 59），不得一刀切成 59。
+  //      WHY：官方 `cornerRadiusUL/UR/LL/LR = 8/59/8/59`（SDK displays[0] + framebufferMask PDF 互证），
+  //      用单一 59 会把折痕侧渲成圆角，外观失真。同时锁住「单值机型字形不变」（`58px` / `45px`），
+  //      避免逐角改造把 14 台直板/平板的 golden 一起搅动。
+  const duoRadii = DEVICES['iphone-duo-cover'].cornerRadii;
+  check('Duo 外屏 cornerRadii 按官方逐角（TL/BL=8、TR/BR=59；单值回退=外缘 59）',
+    duoRadii && duoRadii.topLeft === 8 && duoRadii.bottomLeft === 8
+      && duoRadii.topRight === 59 && duoRadii.bottomRight === 59
+      && DEVICES['iphone-duo-cover'].cornerRadius === 59,
+    JSON.stringify({ radii: duoRadii, single: DEVICES['iphone-duo-cover'].cornerRadius }));
+  const coverRun = run(GEN, ws, ['--platform', 'mobile', '--device', 'iphone-duo-cover', '--quiet']);
+  const coverShell = read(join(ws, 'prototype', 'index.html'));
+  const coverFrameR = (coverShell.match(/border-radius:([^;]*);padding/) || [])[1];
+  const coverScreenR = (coverShell.match(/bg-white overflow-hidden" style="border-radius:([^"]*)"/) || [])[1];
+  check('Duo 外屏外壳逐角渲染（frame 8/59/59/8、screen 0/46/46/0）',
+    coverRun.status === 0 && coverFrameR === '8px 59px 59px 8px' && coverScreenR === '0px 46px 46px 0px',
+    JSON.stringify({ status: coverRun.status, frame: coverFrameR, screen: coverScreenR }));
+  const barRun = run(GEN, ws, ['--platform', 'mobile', '--quiet']);
+  const barShell = read(join(ws, 'prototype', 'index.html'));
+  const barFrameR = (barShell.match(/border-radius:([^;]*);padding/) || [])[1];
+  const barScreenR = (barShell.match(/bg-white overflow-hidden" style="border-radius:([^"]*)"/) || [])[1];
+  check('单值机型圆角字形不变（iphone16 仍是 <cornerRadius>px / <cornerRadius-bezel>px 单值）',
+    barRun.status === 0
+      && barFrameR === `${DEVICES.iphone16.cornerRadius}px`
+      && barScreenR === `${DEVICES.iphone16.cornerRadius - DEVICES.iphone16.bezel}px`,
+    JSON.stringify({ status: barRun.status, frame: barFrameR, screen: barScreenR }));
+
   // (d) 负例：--posture 与 --crease 互斥、非折叠设备、帧数上限、未知帧键都必须 exit 1
   const clash = run(GEN, ws, ['--platform', 'mobile', '--posture', 'half', '--crease', 'v-1@50:24', '--quiet']);
   check('--posture 与 --crease 同给 → exit 1', clash.status === 1, `status=${clash.status}`);

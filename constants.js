@@ -530,31 +530,70 @@ export const DEVICES = {
   // ── 苹果折叠 iPhone Duo（2026-09-09 正式发布）──
   'iphone-duo-cover': {
     label: 'iPhone Duo 外屏', category: 'fold-cover',
-    logicalWidth: 466, logicalHeight: 678,          //【推导】1398×2034 ÷3；官方 5.4" 460ppi
-    bezel: 13, cornerRadius: 55,
+    // 【官方 SDK 2026-11-10 核】`iPhone Duo.simdevicetype` 的 capabilities.plist displays[0] =
+    // 1398×2034 @3x、hdpi/vdpi 460 ⇒ 466×678；同一份表里的 displays[1] 是内屏 2007×2853
+    // （与运行时 framebuffer 端口一致）⇒ 该表可信。Simulator 内实测 UIScreen.bounds=466×678、
+    // nativeBounds=1398×2034、nativeScale=3，逐项吻合。
+    logicalWidth: 466, logicalHeight: 678,
+    // 圆角：官方**逐角**给值（`displays[0]` 的 cornerRadiusUL/UR/LL/LR = 8 / 59 / 8 / 59），
+    // 即「左侧（折痕侧）两角 8pt、右侧（外缘）两角 59pt」。framebufferMask PDF 实测复核一致
+    // （mask 尺寸恰为 466×678 = pt 口径：左缘各角内缩 5pt≈8、右缘 59）。设备级 DeviceCornerRadius=59。
+    // 外壳按角渲染（`cornerRadii` → `frameRadiusCss`/`screenRadiusCss`）；单值 `cornerRadius` 保留给
+    // 只认一个数的消费方，取外缘最大值。
+    bezel: 13, cornerRadius: 59,
+    cornerRadii: { topLeft: 8, topRight: 59, bottomRight: 59, bottomLeft: 8 },
     cutout: { type: 'dynamicIsland', width: 126, height: 37, radius: 20 },  // 官方：内外屏均有灵动岛
     statusBarHeight: 54, homeIndicator: { width: 134, height: 5, bottom: 10 },
     tabBarHeight: 83, crease: null,
+    // 【实测·运行时 2026-11-10】逐姿态 safe area（上/右/下/左），外壳暂不消费，供页面层参考：
+    //   竖持（折叠态，应用在外屏）：上0 / 右84 / 下34 / 左0
+    //   横持 landscapeLeft：上0 / 右0 / 下34 / **左84**；landscapeRight 镜像为 右84 / 左0
+    //   ⇒ 84 是竖向系统栏（随持握侧移动），34 是底部 home indicator。
+    // 折叠态活动遮挡区两条：84×174 @x=382（竖向系统栏）、37×37 @(399.7, 29.3)（疑为灵动岛开孔）。
+    // 「右 84」与 E3「系统栏/TabBar 竖排到尾侧、内容避让 84」互为印证。
+    safeInsets: {
+      portrait: { top: 0, right: 84, bottom: 34, left: 0 },
+      landscape: { top: 0, right: 0, bottom: 34, left: 84 },
+    },
   },
   'iphone-duo-inner': {
     label: 'iPhone Duo 内屏', category: 'fold-inner',
-    // 【实测·单源】2026-11-04 模拟器：2007×2853 @3x ⇒ 669×951（nativeScale=3.0）。
-    // 勿写「1878×2670 ÷3」= 626×890：官方 1878×2670@430ppi 是物理/营销分辨率，物理÷scale ≠ 逻辑尺寸
-    // （iPhone 6 Plus 同型：物理 1080×1920、渲染 1242×2208@3x）。Apple 从不公布 pt 值，
-    // 第三方分辨率站亦照 ÷3 推得 626，故不可作反证。构建前须真机复核（见 docs/plan 未决项）。
+    // 【官方 SDK 2026-11-10 复核】原【实测·单源】2026-11-04 模拟器已解除单源：
+    //   证据① capabilities.plist displays[1] = 2007×2853 @3x、hdpi/vdpi 460、
+    //          四角 cornerRadius 均 55、nativeOrientation 270（= 内屏天然横置）；
+    //   证据② `simctl io <dev> enumerate` 的主 framebuffer 端口 2007×2853。
+    //   证据③【实测·运行时 2026-11-10】把设备摆到展开/半折姿态后，App 内 `UIScreen.bounds`
+    //          = 669×951（portrait interface）、nativeBounds = 2007×2853、nativeScale = 3；
+    //          折叠态下 `UIScreen.screens.count == 1`（内屏不作为 UIScreen 暴露），展开后为 2。
+    // 三条独立证据 ⇒ 669×951。
+    // 但仍**不得**写「1878×2670 ÷3」= 626×890：官方 1878×2670@430ppi 是物理/营销分辨率，
+    // 物理÷scale ≠ 逻辑尺寸（iPhone 6 Plus 同型：物理 1080×1920、渲染 1242×2208@3x）。
+    // Apple 从不公布 pt 值 ⇒ 这是「SDK 设备配置推导」，不是「官方公布的逻辑分辨率」。
     logicalWidth: 669, logicalHeight: 951,
     bezel: 13, cornerRadius: 55,
     cutout: { type: 'dynamicIsland', width: 126, height: 37, radius: 20 },
     statusBarHeight: 54, homeIndicator: { width: 134, height: 5, bottom: 10 },
     tabBarHeight: 83,
-    // 【实测·模拟器 2026-11-04】半折保留区带 40pt（=20+20）。注意 Apple 语义：division 区仅在
-    // 折叠时 active，完全展开时宽度为 0 —— 本值只用于「半折预览」，展开态由 --posture flat 收成 1px。
+    // 【实测·二证 2026-11-10｜已解除单源】半折保留区带 40pt（= 两侧各 20）。测法：用 Device Hub
+    // 同款 vendor-defined HID 事件把模拟器摆到铰链角（`docs/test/duo-probe-20261110/duo-pose.m`，
+    // 协议 usagePage 0xFF61 / usage 0x5B），再在 App 内读 `UIView.reservedRegionsOfKind:`。
+    //   90° → division frame 40×669 @x=455.5、margins 左右各 20；
+    //   130° → 同上（40×669、20+20）⇒ **两角一致，不是单次读数**。
+    //   180°（flat）→ division 为空；折叠态 → 也为空 ⇒ 与 Apple 语义一致
+    //   （Tech Talk 111463：「active only when the device is folded, and has zero width when flat」）。
+    // 本值只用于「半折预览」，展开态由 --posture flat 收成 1px（人眼近似，不是设备事实）。
     crease: { axis: 'v', positions: [0.5], width: 40 },
-    // 【实测·模拟器 2026-11-04】逐姿态安全区（上/右/下/左）。外壳暂不消费，供实现层参考；
-    // 禁止由一侧推算另一侧（Apple：safe area 与 margin 常不对称）。
+    // 【实测·运行时 2026-11-10】逐姿态 safe area（上/右/下/左）。外壳暂不消费，供页面层参考；
+    // 禁止由一侧推算另一侧（Apple：safe area 与 margin 常不对称）。实测矩阵：
+    //   内屏竖持（interface portrait/upsideDown，669×951）：上82 / 右0 / 下34 / 左0
+    //     ⇒ 竖持时**无侧栏**，状态区在上（82）、home indicator 在下（34）；
+    //   内屏横持（951×669，interface landscapeLeft/Right）：上0 / 右84 / 下34 / 左0
+    //     ⇒ 84 是竖向系统栏。**订正**：原记「portrait right 34 / bottom 0、landscape left 84 / right 34」
+    //     的方位是错的（34 属底部 home indicator，84 属横向时的右侧栏）。
+    //   Split View（App 占内屏半边）时栏位到窗口左缘、可能出现 left 84 —— **未测**，勿由本表外推。
     safeInsets: {
-      portrait: { top: 82, right: 34, bottom: 0, left: 0 },
-      landscape: { top: 0, right: 34, bottom: 0, left: 84 },
+      portrait: { top: 82, right: 0, bottom: 34, left: 0 },
+      landscape: { top: 0, right: 84, bottom: 34, left: 0 },
     },
     layoutHint: 'two-pane',
   },

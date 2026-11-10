@@ -19,6 +19,44 @@ const FALLBACK_TAB_BAR = 83;
 const DEFAULT_CREASE_WIDTH = 22;
 
 /**
+ * 圆角字段。三种口径并存，各有明确消费方：
+ *  - `cornerRadius`：单值（既有字段，其它消费点不用改）；
+ *  - `cornerRadii`：逐角官方值，仅折叠机需要（Duo 外屏左侧 8pt / 右侧 59pt，官方按角给值）；
+ *  - `frame*Css` / `screen*Css`：外壳直接插进 style 的现成字符串，避免模板里算四角。
+ * 单值机型输出与旧实现**逐字节同形**（`55px` / `42px`），不触发 golden 抖动。
+ */
+function radiusFields(ref, bezel) {
+  const single = ref.cornerRadius ?? FALLBACK_CORNER_RADIUS;
+  const r = ref.cornerRadii;
+  if (!r) {
+    return {
+      cornerRadius: single,
+      cornerRadii: null,
+      frameRadiusCss: `${single}px`,
+      // 单值分支**不做负值钳制**：这是与旧模板 `${cornerRadius - bezel}px` 逐字节同形的契约，
+      // 现有 16 台 radius ≥ bezel 故恒非负；新增单值机型若 radius < bezel 需先改契约再钳（逐角分支已钳）。
+      screenRadiusCss: `${single - bezel}px`,
+    };
+  }
+  const px = (n) => `${n}px`;
+  // CSS border-radius 顺序：上左 / 上右 / 下右 / 下左
+  const order = [r.topLeft, r.topRight, r.bottomRight, r.bottomLeft];
+  // 缺角/拼错键会让 undefined 静默变成 `undefinedpx`/`NaNpx`，整条 border-radius 被浏览器判废
+  // （四角变直角），版面坏了却没有报错 ⇒ 内部表 fail-fast（走到这里说明预设写了 cornerRadii）
+  const badIdx = order.findIndex((n) => typeof n !== 'number' || !Number.isFinite(n));
+  if (badIdx !== -1) {
+    throw new Error(`DEVICES 的 cornerRadii 四角必须均为有限数字（第 ${badIdx + 1} 角非法）：${JSON.stringify(r)}`);
+  }
+  return {
+    cornerRadius: single,
+    cornerRadii: r,
+    frameRadiusCss: order.map(px).join(' '),
+    // 内层屏幕减掉 bezel；尖锐角（如 8pt）减 13 会为负 ⇒ 归零，否则 CSS 圆角非法
+    screenRadiusCss: order.map((n) => px(Math.max(0, n - bezel))).join(' '),
+  };
+}
+
+/**
  * 解析 --crease 覆盖值。格式：<axis>-<count>@<pos>[,<pos>][:<width>]
  * 位置可写 0.5 / 50 / 50%（三者等价），钳制到 (0,1)；仅竖折 v 产生左右多栏。
  *   例：v-1@50:24 ／ v-2@33,67:24 ／ h-1@50:20 ／ none
@@ -78,7 +116,7 @@ export function resolveDevice({ deviceKey, aspectOverride, customW, customH, cre
     logicalWidth: w,
     logicalHeight: h,
     bezel,
-    cornerRadius: ref.cornerRadius ?? FALLBACK_CORNER_RADIUS,
+    ...radiusFields(ref, bezel),
     cutout: ref.cutout ?? { type: 'none', size: 0 },
     statusBarHeight: ref.statusBarHeight ?? FALLBACK_STATUS_BAR,
     // 以下两项为 agent 参考元数据，当前外壳/页面模板不消费（避免被误当生效约束）

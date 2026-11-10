@@ -24,8 +24,8 @@
     </nav>
     <p class="mt-8 text-xs text-neutral-400">共 <%= it.nav.length %> 个页面 · 文案中文 · 图片 AI/Unsplash 混合</p>
   </section>
-  <section aria-label="手机预览" class="relative mx-auto shrink-0" data-device="<%= it.device.key %>" data-aspect="<%= it.device.aspectClass %>" data-panes="<%= it.device.panes %>" data-vertical-space="<%= it.device.verticalSpace %>" style="width:<%= it.device.frameWidth %>px;height:<%= it.device.frameHeight %>px;background:linear-gradient(160deg,#1c1d22,#0b0b0f);border-radius:<%= it.device.cornerRadius %>px;padding:<%= it.device.bezel %>px;box-shadow:0 40px 80px -20px rgb(15 23 42 / .45),0 0 0 1px rgb(255 255 255 / .06),inset 0 0 0 2px rgb(255 255 255 / .03)">
-    <div class="relative w-full h-full bg-white overflow-hidden" style="border-radius:<%= it.device.cornerRadius - it.device.bezel %>px">
+  <section aria-label="手机预览" class="relative mx-auto shrink-0" data-device="<%= it.device.key %>" data-aspect="<%= it.device.aspectClass %>" data-panes="<%= it.device.panes %>" data-vertical-space="<%= it.device.verticalSpace %>" style="width:<%= it.device.frameWidth %>px;height:<%= it.device.frameHeight %>px;background:linear-gradient(160deg,#1c1d22,#0b0b0f);border-radius:<%= it.device.frameRadiusCss %>;padding:<%= it.device.bezel %>px;box-shadow:0 40px 80px -20px rgb(15 23 42 / .45),0 0 0 1px rgb(255 255 255 / .06),inset 0 0 0 2px rgb(255 255 255 / .03)">
+    <div class="relative w-full h-full bg-white overflow-hidden" style="border-radius:<%= it.device.screenRadiusCss %>">
       <% if (it.device.cutout && it.device.cutout.type === 'dynamicIsland') { %>
       <!-- 灵动岛 -->
       <div class="absolute top-2.5 left-1/2 -translate-x-1/2 bg-black z-30 flex items-center justify-center" style="width:<%= it.device.cutout.width %>px;height:<%= it.device.cutout.height %>px;border-radius:<%= it.device.cutout.radius %>px" aria-hidden="true">
