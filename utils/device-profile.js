@@ -8,7 +8,7 @@
  *   --crease              → 覆盖预设折痕
  * 无任何覆盖时取默认设备 iphone16。
  */
-import { DEVICES, ASPECT_CLASSES, deviceFrame, resolvePanes, resolveSizeClass } from '../constants.js';
+import { DEVICES, ASPECT_CLASSES, SYSTEM_BAR_RAIL_MIN, deviceFrame, resolvePanes, resolveSizeClass } from '../constants.js';
 
 const DEFAULT_DEVICE = 'iphone16';
 // 以下为「预设缺字段」时的兜底值，与 DEVICES.iphone16 对齐
@@ -54,6 +54,59 @@ function radiusFields(ref, bezel) {
     // 内层屏幕减掉 bezel；尖锐角（如 8pt）减 13 会为负 ⇒ 归零，否则 CSS 圆角非法
     screenRadiusCss: order.map((n) => px(Math.max(0, n - bezel))).join(' '),
   };
+}
+
+/**
+ * 系统栏形态派生（外壳与页面模板的唯一消费入口）。
+ *
+ * 竖排系统栏（iPhone Duo 外屏竖持）把「状态栏 + 竖排灵动岛 + tab bar + toolbar」堆在
+ * 侧边一条窄列里；外壳只画栏顶的系统 chrome，TabBar 归页面（保 TABBAR_HIDDEN / aria-current）。
+ *
+ * 输入只用**已实测**的事实：`safeInsets`（逐姿态安全区）+ `systemChrome`（栏内几何）；
+ * 竖排分支缺 `systemChrome` 时 fail-fast（不猜几何，否则模板会输出非法 CSS 且静默失效）。
+ * 本轮只支持 `edge:'right'`：左栏达标（横持 landscapeLeft 的镜像形态）时降级为横排并
+ * 回传 `degradedLeftRail`，由调用方告警——宁可退回旧观感，也不画出「chrome 在左、避让在右」。
+ *
+ * @returns {{orientation:'vertical'|'horizontal', edge:'right'|'top', thickness:number,
+ *            chromeHeight:number, islandTop:number|null, bottomInset:number,
+ *            island:{width:number,height:number,radius:number}|null, degradedLeftRail:boolean}}
+ */
+export function resolveSystemBar({ safeInsets, systemChrome, statusBarHeight, cutout } = {}) {
+  const insets = safeInsets?.portrait ?? null;
+  const right = insets?.right ?? 0;
+  const left = insets?.left ?? 0;
+  const horizontal = (degradedLeftRail = false) => ({
+    orientation: 'horizontal', edge: 'top', thickness: statusBarHeight,
+    chromeHeight: statusBarHeight, islandTop: null,
+    bottomInset: insets?.bottom ?? 0, island: null, degradedLeftRail,
+  });
+
+  if (!insets) return horizontal();
+  if (right >= SYSTEM_BAR_RAIL_MIN) {
+    // 竖排几何只认实测值，不做「缺字段就猜」的兜底（与 cornerRadii 同款 fail-fast）：
+    // 缺 systemChrome 时若回退横排带高，模板会输出非法 CSS（height:px）而静默失效。
+    if (!systemChrome || !Number.isFinite(systemChrome.height) || !Number.isFinite(systemChrome.islandTop)) {
+      throw new Error(`设备带竖排系统栏（safeInsets.portrait.right=${right}）但 DEVICES 缺 systemChrome 实测几何（栏高 / 岛顶 y）：请先在 constants.js 补齐`);
+    }
+    // 竖排灵动岛按**实测洞径** 37×37 画：把横排 cutout（126×37）旋转 90° 得 37×126 是【估计】，
+    // 且与实测栏高 174 无法共容（29 顶距 + 126 = 155，只剩 19px 放状态簇）——竖排里状态簇是
+    // 「时间 / 岛 / 信号+电量」沿栏依次排开的一条竖线，岛取 37 高才让 29+37+108=174 自洽。
+    // 【实测】2026-11-10 reservedRegionsOfKind:occlusion = 84×174（栏）+ 37×37 @y=29.3（岛洞）。
+    const islandSize = systemChrome.islandSize ?? null;
+    const island = cutout && cutout.type === 'dynamicIsland' && Number.isFinite(islandSize)
+      ? { width: islandSize, height: islandSize, radius: Math.min(cutout.radius, Math.round(islandSize / 2)) }
+      : null;
+    return {
+      orientation: 'vertical', edge: 'right', thickness: right,
+      chromeHeight: systemChrome.height,
+      islandTop: systemChrome.islandTop,
+      bottomInset: insets.bottom ?? 0,
+      island,
+      degradedLeftRail: false,
+    };
+  }
+  if (left >= SYSTEM_BAR_RAIL_MIN) return horizontal(true);
+  return horizontal();
 }
 
 /**
@@ -109,6 +162,15 @@ export function resolveDevice({ deviceKey, aspectOverride, customW, customH, cre
   let label = preset ? preset.label : '自定义设备';
   if (preset && sizeOverridden) label = `${preset.label}（自定义 ${w}×${h}）`;
 
+  // 尺寸被覆盖时不得沿用预设机型的逐姿态安全区（否则与 label 的「诚实标注」口径不一）
+  const safeInsets = sizeOverridden ? null : (ref.safeInsets ?? null);
+  const statusBarHeight = ref.statusBarHeight ?? FALLBACK_STATUS_BAR;
+  // 系统栏形态：外壳画 chrome、页面画 TabBar 都读这一个字段（唯一派生点）
+  const systemBar = resolveSystemBar({
+    safeInsets, systemChrome: ref.systemChrome, statusBarHeight,
+    cutout: ref.cutout ?? { type: 'none', size: 0 },
+  });
+
   return {
     key,
     label,
@@ -118,7 +180,7 @@ export function resolveDevice({ deviceKey, aspectOverride, customW, customH, cre
     bezel,
     ...radiusFields(ref, bezel),
     cutout: ref.cutout ?? { type: 'none', size: 0 },
-    statusBarHeight: ref.statusBarHeight ?? FALLBACK_STATUS_BAR,
+    statusBarHeight,
     // 以下两项为 agent 参考元数据，当前外壳/页面模板不消费（避免被误当生效约束）
     navBarHeight: ref.navBarHeight ?? 0,
     layoutHint: ref.layoutHint ?? null,
@@ -127,8 +189,8 @@ export function resolveDevice({ deviceKey, aspectOverride, customW, customH, cre
     crease,
     // 尺寸类仅作报告面/文档口径，模板不消费（ASPECT_CLASSES 仍决定骨架）
     sizeClass: resolveSizeClass(w, h),
-    // 尺寸被覆盖时不得沿用预设机型的逐姿态安全区（否则与 label 的「诚实标注」口径不一）
-    safeInsets: sizeOverridden ? null : (ref.safeInsets ?? null),
+    safeInsets,
+    systemBar,
     ...geom,
     panes,
     aspectClass,

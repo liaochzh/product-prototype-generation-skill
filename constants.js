@@ -394,12 +394,24 @@ export const TYPE_ROLES = {
  * 比例仅差 0.016，却应分属单栏/双栏 —— 比例分档必然误判。
  * ═══════════════════════════════════════════════════════════════════════════ */
 
-/** 布局档位：phone 单栏 / pane 双栏+ / wide 横向双栏+ */
+/** 布局档位：phone 单栏 / pane 双栏+ / wide 横向双栏+。
+ *  `nav` **仅是档位口径**（骨架用哪套导航），导航的真实形态由 `device.systemBar` 决定
+ *  ——iPhone Duo 外屏是 phone 档但系统导航竖排在侧栏内，与 `nav:'tabbar'` 字面相反。 */
 export const ASPECT_CLASSES = {
   phone: { layout: 'single',      nav: 'tabbar', minPanes: 1 },
   pane:  { layout: 'dual',        nav: 'rail',   minPanes: 2 },
   wide:  { layout: 'dual|triple', nav: 'rail',   minPanes: 2 },
 };
+
+/** 全屏页（无 TabBar）：页面级与校验级的**单一事实源**，勿在别处重抄名单 */
+export const TABBAR_HIDDEN = new Set(['chat', 'detail', 'list-detail', 'publish', 'login', 'register']);
+
+/**
+ * 系统栏竖排判定阈值（`safeInsets.portrait` 的左/右安全区达到此值 ⇒ 该边是竖向系统栏）。
+ * 标定：iPhone Duo 外屏实测右 **84** 触发；内屏竖持 右0/左0、底部 34（home indicator）
+ * 均不触发；真机横持时邻侧刘海安全区约 44，同样不触发。
+ */
+export const SYSTEM_BAR_RAIL_MIN = 60;
 
 const PHONE_MAX_WIDTH = 600;   // 逻辑宽 < 600 → 单栏
 const WIDE_MIN_RATIO = 1.30;   // ≥600 且宽高比 > 1.30 → wide
@@ -545,16 +557,27 @@ export const DEVICES = {
     cutout: { type: 'dynamicIsland', width: 126, height: 37, radius: 20 },  // 官方：内外屏均有灵动岛
     statusBarHeight: 54, homeIndicator: { width: 134, height: 5, bottom: 10 },
     tabBarHeight: 83, crease: null,
-    // 【实测·运行时 2026-11-10】逐姿态 safe area（上/右/下/左），外壳暂不消费，供页面层参考：
+    // 【实测·运行时 2026-11-10】逐姿态 safe area（上/右/下/左）。**外壳与页面都消费**：
+    // 它是 `resolveSystemBar()` 的唯一输入之一（另一输入是本块的 `systemChrome`）——
+    // 删掉本字段会让竖排系统栏静默退回横排，勿当死数据清理。
     //   竖持（折叠态，应用在外屏）：上0 / 右84 / 下34 / 左0
     //   横持 landscapeLeft：上0 / 右0 / 下34 / **左84**；landscapeRight 镜像为 右84 / 左0
     //   ⇒ 84 是竖向系统栏（随持握侧移动），34 是底部 home indicator。
-    // 折叠态活动遮挡区两条：84×174 @x=382（竖向系统栏）、37×37 @(399.7, 29.3)（疑为灵动岛开孔）。
+    // 折叠态活动遮挡区两条：84×174 @x=382（竖向系统栏）、37×37 @(399.7, 29.3)（灵动岛在栏内的洞）。
     // 「右 84」与 E3「系统栏/TabBar 竖排到尾侧、内容避让 84」互为印证。
     safeInsets: {
       portrait: { top: 0, right: 84, bottom: 34, left: 0 },
       landscape: { top: 0, right: 0, bottom: 34, left: 84 },
     },
+    // 竖向系统栏的**栏内**几何（与上面的 safeInsets 不同源，勿混推）：
+    //   height     = 实测遮挡区高 174 ⇒ 栏顶 chrome（状态簇 + 竖排灵动岛）所占高度；
+    //   islandTop  = 实测岛洞 y=29.3 ⇒ 竖排灵动岛顶边；
+    //   islandSize = 实测岛洞 37×37 ⇒ 岛在栏内是**方形**洞（不是把横排 126×37 旋转成 37×126：
+    //                那样 29+126=155 只剩 19px，塞不下状态簇，也与实测洞径不符）。
+    // 三者都来自 2026-11-10 运行时 `reservedRegionsOfKind:occlusion`（84×174 + 37×37@y=29.3），
+    // 不是 statusBarHeight(54，横排带高) 派生。栏内自洽分解：29（时间）+ 37（岛）+ 108（信号/电量）= 174。
+    // 已知近似：实测洞在栏内偏心约 6pt（洞心 418.2 vs 栏心 424），外壳按「水平居中」画。
+    systemChrome: { height: 174, islandTop: 29, islandSize: 37 },
   },
   'iphone-duo-inner': {
     label: 'iPhone Duo 内屏', category: 'fold-inner',

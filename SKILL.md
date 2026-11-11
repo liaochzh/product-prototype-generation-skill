@@ -3,8 +3,8 @@ name: product-prototype-generation
 description: 从产品需求到可交互原型的完整工作流。当用户表达产品想法（如'我想做一个...'、'帮我设计...'）时触发。支持：1) 零提问直出PRD 2) 平台选择确认 3) 生成Awwwards级别的高保真HTML/Tailwind原型（移动端/PC端）。端到端产品设计流程。仅做「产品想法→PRD→原型」全流程；不用于纯视觉重塑/美化现有 UI（Web 用 frontend-design、App 用 app-design）、不用于深度产品咨询/竞品/数据分析（用 product-manager）、不用于无障碍专项审计（用 accessibility）。
 compatibility: 需 Node.js 18+；浏览器层 harness 需本机 Chrome（缺失则明确跳过并返回 0）；图片依赖 Unsplash 稳定池或 text-generate-image MCP。
 metadata:
-  version: "2026.11.06"
-  updated: "2026-11-06"
+  version: "2026.11.11"
+  updated: "2026-11-11"
 ---
 
 # PRD to Prototype — 从想法到可交互原型
@@ -79,7 +79,8 @@ GenUI确认模板（必须原样）：
 - **折叠姿态**：`--posture flat|half|closed`（**仅折叠设备**；与 `--crease` 互斥）。这是**外壳预览参数**——折算成折痕覆盖，不改模板；不得表述为「运行时判定姿态」，页面层也不得自绘折痕避让（系统已内建半折推离行为）。
 - **多帧预览**：`--frame-set k1,k2[,k3[,k4]]`，每帧产出根级 `device-<key>.html` + `gallery.html`（iframe 按 `frameWidth/Height + 48` 给足，少给会裁帧）；缺省**一个文件都不追加**（golden 文件集不变），且会清掉上一轮的陈旧帧。帧语法 `key[:posture]`，同设备多姿态按 key 去重（要对比请分两次生成）。
 - **平板是形态容器**：演示外壳几何与可用空间，**不代表页面已按断点重排**（页面级响应式属二期）。
-- 派生属性、折痕/姿态语法、尺寸类映射、数据来源等级标注、外壳几何契约（`layoutFail`/`creaseFail` 计入 `passed`）、17 款机型清单 → **`references/devices.md`**。
+- **竖排系统栏（iPhone Duo 外屏）**：`device.systemBar` 是唯一派生点（`safeInsets` + `systemChrome`），外壳与页面共用。外壳只画栏顶系统 chrome（`#system-rail`：竖排状态簇 + 竖排灵动岛）；**TabBar 仍由页面渲染**（`data-rail-tabbar`，保 `TABBAR_HIDDEN` 与 `aria-current`；外壳跨文档读不到 iframe 当前页）。页面靠 `body{padding-right:var(--rail-w)}` 右沿避让。本轮只支持 `edge='right'`（左栏降级横排 + warn），主帧与帧集系统栏形态不一致直接 exit 1——**混帧必然画出假预览**。
+- 派生属性、折痕/姿态语法、尺寸类映射、数据来源等级标注、外壳几何契约（`layoutFail`/`creaseFail` 计入 `passed`）与竖排系统栏的产物契约、17 款机型清单 → **`references/devices.md`**。
 - 尺寸类 → 范式 → 原型呈现、多形态判据、经验档与多形态验收清单 → **`references/adaptive-layout.md`**。
 
 ## 资源与技术规范
@@ -113,7 +114,7 @@ App 记录项 5 条（**记录项**，非硬禁令，交付时自检回填）与
 ## 质量自检
 
 - `verify-prototype.js`：中文占比、Lorem/占位图、viewport、语义化、**死链**、未解析站内导航、**内联 Tailwind 配置可执行性**、**设备几何一致性**（`layoutFail`/`creaseFail` 计入 `passed`）、**尺寸类/姿态枚举**（`device.sizeClass` 四档、`device.posture` 三档或 null）、**多帧断言**（`report.frames` 非空时逐帧比对 `device-<key>.html` 的 `data-device/data-aspect/data-panes`，并校验 `frames[].sizeClass/posture` 枚举与 `gallery.html` 逐帧 iframe 尺寸 = `frameWidth/Height + 48`）；`generation-report.json` 随产物输出（含 `device`（新增 `sizeClass` / `posture`）、`frames`（缺省 `[]`）、`capabilities`、`skippedPages`（无模板而跳过的页，恒存在）、`truncatedPages`（超 10 页上限被截断的页，恒存在）、`unknownPages`（页面清单里未登记、已忽略的页名，恒存在），以及文档导入三字段 `prdSource`（`prd`/`doc`）、`assumptions`、`prdWarnings`）。
-- `selfcheck.js`：全链路回归（53 个场景块）+ 多 fixture golden 三维零回归。**改动生成链路、模板或词典后必须跑**。
+- `selfcheck.js`：全链路回归（54 个场景块）+ 多 fixture golden 三维零回归。**改动生成链路、模板或词典后必须跑**。
 - 覆盖面清单（每个场景锁什么、页集↔fixture↔golden 规则、四个浏览器 harness 各自证明什么）→ **`references/selfcheck-gates.md`**。
 - 浏览器层（需本机 Chrome，`selfcheck --browser`）：交互/播报/版式/字号实测。**版式塌（横向溢出、底部导航遮内容、文本截断、侧栏压主区）用 `scripts/verify-layout.js` 的几何断言兜住**——不建像素基线（那会改 `head` 并重冻 golden）。
 

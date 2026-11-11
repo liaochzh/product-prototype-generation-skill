@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head><%~ it.head %></head>
-<body class="bg-neutral-50 text-neutral-900 antialiased" style="min-height:100vh">
+<body class="bg-neutral-50 text-neutral-900 antialiased"<% if (it.device.systemBar.orientation === 'vertical') { %> data-rail="right"<% } %> style="min-height:100vh<% if (it.device.systemBar.orientation === 'vertical') { %>;--rail-w:<%= it.device.systemBar.thickness %>px;padding-right:var(--rail-w)<% } %>"><% if (it.device.systemBar.orientation === 'vertical') { %><style>[role="toolbar"]{right:var(--rail-w)}</style><% } %><%~ '\n' %>
 <%~ it.pageContent %>
 <%~ it.tabbar %>
 </body>

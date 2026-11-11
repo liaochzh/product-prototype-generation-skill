@@ -14,9 +14,10 @@
 - `--crease <axis>-<count>@<pos>[,<pos>][:<width>]`：覆盖折痕（位置可写 `0.5`/`50`/`50%`；`none` 表示无折痕）。例：`v-1@50:24`、`v-2@33,67:24`、`h-1@50:20`。
 - **姿态 `--posture flat|half|closed`**（**仅折叠设备**，非折叠预设给该参数 exit 1；与 `--crease` **互斥**，同给 exit 1）：`flat` → 折痕收成 1px 分割线；`half` → 预设带宽（Duo 40pt）；`closed` → 无折痕带（`crease=null`），仅在报告标注。实现走「折算成 `--crease` 规格串」的既有通道，**不改模板**。这是**外壳预览参数**，不表示运行时能判定姿态：iOS 拿不到折叠信息，页面层也不得自绘折痕避让（系统已内建「半折时推开交互元素」）。另注意 Apple 语义：division 区仅在折叠时 active，**完全展开时宽度为 0**，故 `flat` 的 1px 是人眼友好的观感近似，不是设备事实。
 - **尺寸类 `SIZE_CLASSES` / `resolveSizeClass(w,h)`**：四档 compact / medium / expanded / large（XL 并入 large），高度例外（矮于阈值的宽屏判 compact，即「宽 medium 而高 compact 不判双栏」）。**断点数值不在本文件复制**，唯一事实源是 `constants.js`；平台口径回指哲学层 §自适应布局。尺寸类进报告面（`report.device.sizeClass` / `report.frames[].sizeClass`），**同时是平板断点 `TABLET_SCREENS` 的派生源**（二期）；不改模板产物。
-- 派生属性：`verticalSpace`（逻辑高 `<700px` → `tight`，用于竖向紧凑布局）；`frameWidth/Height = 逻辑尺寸 + 2×bezel`（原实现误把物理外框当逻辑分辨率，导致 iframe 视口为虚构的 404px）；`sizeClass`；`safeInsets`（逐姿态安全区，外壳暂不消费；**目前只有 Duo 内外屏带该字段**，其余折叠/直板预设无）。Duo 的四个姿态值为【实测·运行时 2026-11-10】：外屏竖持 上0/右84/下34/左0、横持 下34 + 侧栏 84（landscapeLeft→左84，landscapeRight→右84）；内屏竖持 上82/右0/下34/左0（**无侧栏**）、横持 上0/右84/下34/左0。
+- 派生属性：`verticalSpace`（逻辑高 `<700px` → `tight`，用于竖向紧凑布局）；`frameWidth/Height = 逻辑尺寸 + 2×bezel`（原实现误把物理外框当逻辑分辨率，导致 iframe 视口为虚构的 404px）；`sizeClass`；`safeInsets`（逐姿态安全区，**目前只有 Duo 内外屏带该字段**，其余折叠/直板预设无）；`systemBar`（系统栏形态，外壳与页面**共用这一份**：`orientation` / `edge` / `thickness` / `chromeHeight` / `islandTop` / `bottomInset` / `island` / `degradedLeftRail`）。`systemBar` 只由 `safeInsets` + `systemChrome` 派生：`safeInsets.portrait` 左或右 ≥ `SYSTEM_BAR_RAIL_MIN` ⇒ 该边是竖排系统栏（本轮只实现 `edge:'right'`，左栏达标降级横排并 warn）。Duo 的四个姿态值为【实测·运行时 2026-11-10】：外屏竖持 上0/右84/下34/左0、横持 下34 + 侧栏 84（landscapeLeft→左84，landscapeRight→右84）；内屏竖持 上82/右0/下34/左0（**无侧栏**）、横持 上0/右84/下34/左0。
 - **圆角两种口径**：`cornerRadius`（单值，绝大多数机型）与 `cornerRadii`（逐角，仅 Duo 外屏这种官方按角给值的机型）。外壳消费的是派生好的 `frameRadiusCss` / `screenRadiusCss`（后者已减 `bezel` 并归零负值），模板里不再做算术。单值机型的输出与旧实现逐字节相同。
 - **外壳契约（供闸门校验）**：`section[data-device][data-aspect][data-panes][data-vertical-space]` 必须与 `generation-report.json` 的 `device` 字段一致，`layoutFail`/`creaseFail` 非 0 即 `passed:false`。`report.device.sizeClass` 须属四档枚举、`report.device.posture` 须属三档枚举（或 null）。
+- **竖排系统栏的产物契约**（`device.systemBar.orientation === 'vertical'` 时，当前仅 Duo 外屏）：① 外壳 `section` 多出 `data-system-bar="right"` / `data-system-bar-size="<thickness>"`，并渲染 `#system-rail`（栏顶 chrome：`#status-bar` + `#status-time` / `#status-signal` / `#status-battery` + 竖排灵动岛，`aria-hidden` + `pointer-events-none`）；② **TabBar 仍由页面渲染**（外壳跨文档读不到 iframe 当前页，`file://` 属不透明源）——页面 `body` 带 `data-rail="right"` 与 `padding-right:var(--rail-w)`，`<nav data-rail-tabbar="1">` 竖排且保留 `aria-current`；③ `TABBAR_HIDDEN` 内的全屏页不得出竖排 TabBar；④ 帧集里任一帧的 `systemBar.orientation` 与主帧不同时**生成期 exit 1**（页面产物只有一套，混帧必然画出假预览，请拆两次生成）。校验侧见 `scripts/verify-prototype.js` 的 `verifyVerticalSystemBar()`。
 
 ### 内置 17 款
 
@@ -49,6 +50,7 @@
 | 折痕带宽 | **40pt**（= 两侧各 20） | 半折 90° 与 130° **两角一致**：`reservedRegionsOfKind:divisionRegionKind` 的 `frame` = 40×669（竖折时）且 `margins.left/right` = 20/20；flat 180° 与折叠态均为空 ⇒ 与 Apple 语义吻合 |
 | 外屏安全区 | 竖持：上0 / 右**84** / 下34 / 左0；横持：下34 + 侧栏 84（landscapeLeft→左84，landscapeRight→右84） | 运行时 `window.safeAreaInsets`；竖持活动遮挡区实测 84×174 @x=382（竖向系统栏）+ 37×37 @(399.7,29.3)（灵动岛开孔）⇒ 印证 E3「系统栏竖排到尾侧、避让 84」 |
 | 内屏安全区 | 竖持（669×951）：上**82** / 右0 / 下**34** / 左0；横持（951×669）：上0 / 右**84** / 下**34** / 左0 | 运行时 `window.safeAreaInsets`；**订正**上一版把 34 记到 right、84 记到 landscape.left 的方位错误（竖持无侧栏、34 是底部 home indicator） |
+| 外屏竖向系统栏几何（栏内） | 栏宽 **84** / 栏顶 chrome 高 **174** / 岛顶 y **29** / 岛洞 **37×37** | 运行时 `reservedRegionsOfKind:occlusion` 两条：84×174 @x=382（系统栏）、37×37 @(399.7,29.3)（灵动岛）；`constants.js` 记 `systemChrome:{height:174,islandTop:29,islandSize:37}`。**岛取实测方洞**，不把横排 126×37 旋转成 37×126（29+126=155，只剩 19px 塞不下状态簇）；栏内自洽分解 29（时间）+37（岛）+108（信号/电量）=174 |
 
 **未能复核（仍单源/未测，标注保留）**：
 

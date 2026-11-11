@@ -886,6 +886,97 @@ ${['home', 'discover', 'list', 'detail', 'publish', 'chat', 'orders', 'profile',
   rmSync(ws2, { recursive: true, force: true });
 }
 
+// ---- 场景 22b：竖排系统栏（iPhone Duo 外屏）----
+// WHY：竖排栏是「外壳画 chrome、页面画 TabBar」的双端约定，任一端退回横排都不会影响
+// 旧的「状态栏带高」断言 —— 必须为竖排单列基线与负例，否则整条新路径没有任何机器防线。
+{
+  const ws = newWs(FULL_PRD);
+  const g = run(GEN, ws, ['--platform', 'mobile', '--device', 'iphone-duo-cover', '--quiet']);
+  const v = verifyJson(ws);
+  const rep = (() => { try { return JSON.parse(read(join(ws, 'prototype', 'generation-report.json'))); } catch { return {}; } })();
+  const sb = rep.device && rep.device.systemBar;
+  check('Duo 外屏：systemBar 派生为竖排 right/84/chrome174',
+    g.status === 0 && !!sb && sb.orientation === 'vertical' && sb.edge === 'right'
+      && sb.thickness === 84 && sb.chromeHeight === 174,
+    JSON.stringify(sb));
+  check('Duo 外屏：竖排基线 layoutFail===0 且 passed', v.layoutFail === 0 && v.passed === true,
+    JSON.stringify({ lf: v.layoutFail, passed: v.passed }));
+
+  const shellP = join(ws, 'prototype', 'index.html');
+  const homeP = join(ws, 'prototype', 'pages', 'home.html');
+  const shell0 = read(shellP), home0 = read(homeP);
+  check('Duo 外屏：外壳出 #system-rail 且三状态 id 在其内',
+    /id="system-rail"/.test(shell0)
+      && ['status-time', 'status-signal', 'status-battery'].every((id) => shell0.includes(`id="${id}"`))
+      && !/class="absolute top-0 inset-x-0 z-20 flex justify-between/.test(shell0),
+    'rail/status ids');
+  check('Duo 外屏：首屏页避开系统栏且 TabBar 竖排',
+    /data-rail="right"/.test(home0) && home0.includes('padding-right:var(--rail-w)')
+      && home0.includes('data-rail-tabbar="1"') && home0.includes('aria-current="page"'),
+    'page rail attrs');
+  check('Duo 外屏：全屏页不出竖排 TabBar',
+    ['chat', 'detail', 'list-detail', 'publish'].every((p) => !read(join(ws, 'prototype', 'pages', `${p}.html`)).includes('data-rail-tabbar')));
+
+  // 负例逐个从基线重写两个文件：否则前一个负例留下的改动会让后一个负例「因别的原因失败」而假绿
+  const reset = () => { writeFileSync(shellP, shell0); writeFileSync(homeP, home0); };
+
+  // 负例 1：栏宽与报告不一致（视觉上只差 4px，闸门必须拦住）
+  reset();
+  writeFileSync(shellP, shell0.replace('width:84px;height:174px', 'width:80px;height:174px'));
+  const n1 = verifyJson(ws);
+  check('竖排栏宽被改为 80px → layoutFail>=1 且 passed:false',
+    n1.layoutFail >= 1 && n1.passed === false, JSON.stringify({ lf: n1.layoutFail }));
+
+  // 负例 2：body 出现第二个 style 属性（浏览器只认第一个 ⇒ 避让静默失效，正则仍能匹配）
+  reset();
+  writeFileSync(homeP, home0.replace('data-rail="right" style="min-height:100vh;', 'data-rail="right" style="x:0" style="min-height:100vh;'));
+  const n2 = verifyJson(ws);
+  check('首屏页 body 双 style → layoutFail>=1 且 passed:false',
+    n2.layoutFail >= 1 && n2.passed === false, JSON.stringify({ lf: n2.layoutFail }));
+
+  // 负例 3：竖排栏缺 #status-time（与横排同构的状态簇 id 契约，缺一个即破坏产物一致性）
+  reset();
+  writeFileSync(shellP, shell0.replace('<span id="status-time" style="transform:rotate(90deg)">9:41</span>', ''));
+  const n3 = verifyJson(ws);
+  check('竖排栏缺 #status-time → layoutFail>=1 且 passed:false',
+    n3.layoutFail >= 1 && n3.passed === false, JSON.stringify({ lf: n3.layoutFail }));
+
+  // 负例 4：首屏页丢竖排 TabBar
+  reset();
+  writeFileSync(homeP, home0.replace('data-rail-tabbar="1" ', ''));
+  const n4 = verifyJson(ws);
+  check('首屏页丢竖排 TabBar → layoutFail>=1 且 passed:false',
+    n4.layoutFail >= 1 && n4.passed === false, JSON.stringify({ lf: n4.layoutFail }));
+
+  // 负例 5：外壳 data-system-bar-size 与报告不符（只改属性、栏盒尺寸不动，单靠 style 断言抓不到）
+  reset();
+  writeFileSync(shellP, shell0.replace('data-system-bar-size="84"', 'data-system-bar-size="80"'));
+  const n5 = verifyJson(ws);
+  check('data-system-bar-size 与报告不符 → layoutFail>=1 且 passed:false',
+    n5.layoutFail >= 1 && n5.passed === false, JSON.stringify({ lf: n5.layoutFail }));
+
+  // 负例 6：全屏页被注入竖排 TabBar（TABBAR_HIDDEN 名单的守卫不能被静默绕过）
+  reset();
+  const detailP = join(ws, 'prototype', 'pages', 'detail.html');
+  const detail0 = read(detailP);
+  writeFileSync(detailP, detail0.replace('</body>', '<nav data-rail-tabbar="1"></nav></body>'));
+  const n6 = verifyJson(ws);
+  check('全屏页出现竖排 TabBar → layoutFail>=1 且 passed:false',
+    n6.layoutFail >= 1 && n6.passed === false, JSON.stringify({ lf: n6.layoutFail }));
+  writeFileSync(detailP, detail0);
+  rmSync(ws, { recursive: true, force: true });
+
+  // 负例 7/8：混帧必须双向拒绝 —— 页面产物只有一套，任一方向混帧都只能画出假预览
+  const wsMix = newWs(FULL_PRD);
+  const mix = run(GEN, wsMix, ['--platform', 'mobile', '--frame-set', 'iphone16,iphone-duo-cover', '--quiet']);
+  check('混帧（横排主帧 + 竖排帧）应 exit 非零', mix.status !== 0, `status=${mix.status}`);
+  rmSync(wsMix, { recursive: true, force: true });
+  const wsMix2 = newWs(FULL_PRD);
+  const mix2 = run(GEN, wsMix2, ['--platform', 'mobile', '--device', 'iphone-duo-cover', '--frame-set', 'iphone16', '--quiet']);
+  check('混帧（竖排主帧 + 横排帧）应 exit 非零', mix2.status !== 0, `status=${mix2.status}`);
+  rmSync(wsMix2, { recursive: true, force: true });
+}
+
 // ---- 场景 23：字阶零容忍（源码中不得出现任意字号） ----
 // WHY：任意值 text-[Npx] 只输出 font-size、丢掉 token 配对的 line-height，
 // 是「同类文字块行距不齐」的隐藏来源。JS 生成器（signature/brandMark/tabbar）会注入

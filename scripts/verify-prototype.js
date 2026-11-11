@@ -8,7 +8,7 @@ import { checkInlineTailwindConfig } from '../utils/inspect-tailwind-inline.js';
 import { assertCopyDomain } from '../utils/copy-domain.js';
 import { stripNoise } from '../utils/copy-golden.js';
 import { measureConsistency } from '../utils/consistency.js';
-import { SHELL_STAGE_PAD } from '../constants.js';
+import { SHELL_STAGE_PAD, TABBAR_HIDDEN } from '../constants.js';
 
 const WORKSPACE = process.env.WORKSPACE || process.cwd();
 const outDir = resolve(WORKSPACE, 'prototype');
@@ -87,6 +87,55 @@ for (const f of files) {
 // 断言字段存在（缺 device → layoutFail），消除「缺字段即静默跳过」的假绿路径。
 // 折痕为【估计】值，仅做「数量一致性」校验，不阻塞视觉差异。
 let layoutFail = 0, creaseFail = 0;
+
+/**
+ * 竖排系统栏校验（iPhone Duo 外屏）：外壳栏几何 + 状态簇三 id + 页面右沿避让 + 竖排 TabBar 归属。
+ * WHY 单列成函数：竖排与横排的断言面完全不同（横排比带高，竖排比栏盒 + 页面体），
+ * 揉进主流程会让「横排回归」与「竖排新增」互相掩盖。
+ * @param {{edge:string,thickness:number,chromeHeight:number}} sysBar 报告里的 device.systemBar
+ */
+async function verifyVerticalSystemBar(sysBar, shell, attr) {
+  const fail = (msg) => { layoutFail++; log.verify.error(msg); };
+  const dsb = attr('data-system-bar'), dsz = attr('data-system-bar-size');
+  if (dsb !== sysBar.edge) fail(`外壳 data-system-bar=${dsb} ≠ 报告 ${sysBar.edge}`);
+  if (dsz !== String(sysBar.thickness)) fail(`外壳 data-system-bar-size=${dsz} ≠ 报告 ${sysBar.thickness}`);
+  const railTag = /<div\b[^>]*\sid="system-rail"[^>]*>/.exec(shell);
+  if (!railTag) return fail('外壳缺 #system-rail（竖排系统栏未渲染）');
+  if (!new RegExp(`width:${sysBar.thickness}px`).test(railTag[0])) fail(`#system-rail 宽度 ≠ ${sysBar.thickness}px`);
+  if (!new RegExp(`height:${sysBar.chromeHeight}px`).test(railTag[0])) fail(`#system-rail 高度 ≠ ${sysBar.chromeHeight}px`);
+  // 状态簇三 id 是与横排同构的产物契约（横排脚本 getElementById 直取；竖排当前无脚本、
+  // 时间恒为静态 9:41），旧闸门只比带高、看不见 id 缺失 ⇒ 竖排自己把「id 齐全」当不变量守住。
+  const railLine = shell.slice(railTag.index).split('\n')[0];
+  if (!railLine.includes('id="status-bar"')) fail('竖排栏内缺 #status-bar');
+  for (const id of ['status-time', 'status-signal', 'status-battery']) {
+    if (!railLine.includes(`id="${id}"`)) fail(`竖排栏内缺 #${id}（与横排同构的状态簇 id 集）`);
+  }
+
+  // 页面侧：右沿避让 + 竖排 TabBar 归页面（保 TABBAR_HIDDEN 与 aria-current）
+  const homeHref = genReport.homeHref;
+  if (!homeHref) return fail('generation-report.json 缺 homeHref，无法校验页面侧避让');
+  const home = await readFileSafe(resolve(outDir, homeHref)).catch(() => null);
+  if (!home) return fail(`首屏页缺失：${homeHref}`);
+  const bodyTag = (/<body\b[^>]*>/.exec(home) || [])[0];
+  if (!bodyTag) return fail('首屏页缺 <body>');
+  else {
+    if (!/data-rail="right"/.test(bodyTag)) fail('首屏页 body 缺 data-rail="right"');
+    if (!bodyTag.includes('padding-right:var(--rail-w)')) fail('首屏页 body 未按 --rail-w 让出系统栏');
+    // 第二个 style 属性会被浏览器整段忽略 ⇒ 避让静默失效，而正则仍能匹配到，必须单独守
+    if ((bodyTag.match(/\bstyle=/g) || []).length !== 1) fail('首屏页 body 出现多个 style 属性（后者会被浏览器忽略）');
+  }
+  const tabTag = (/<nav\b[^>]*data-rail-tabbar="1"[^>]*>/.exec(home) || [])[0];
+  if (!tabTag) fail('首屏页缺竖排 TabBar（data-rail-tabbar）');
+  else {
+    if (!new RegExp(`width:${sysBar.thickness}px`).test(tabTag)) fail('竖排 TabBar 宽度与系统栏不一致');
+    if (!home.includes('aria-current="page"')) fail('竖排 TabBar 缺当前项标记 aria-current');
+  }
+  // 全屏页不得出现竖排 TabBar：名单来自 constants.js（单一事实源）
+  for (const p of TABBAR_HIDDEN) {
+    const html = await readFileSafe(resolve(outDir, 'pages', `${p}.html`)).catch(() => null);
+    if (html && html.includes('data-rail-tabbar')) fail(`全屏页 ${p} 不应有竖排 TabBar`);
+  }
+}
 const deviceInfo = genReport && genReport.platform === 'mobile' ? genReport.device : null;
 if (genReport && genReport.platform === 'mobile' && !deviceInfo) {
   layoutFail++;
@@ -113,10 +162,17 @@ if (deviceInfo) {
     // 状态栏带高断言：golden 三维不比对 style，状态栏几何是唯一「闸门外的视觉回归」高发点。
     // 历史上把 statusBarHeight 误当 padding-top 会把文字压到页面 pt-14 标题行上，必须机器守住。
     // 注意属性顺序为 class/style/aria-hidden/id，须先截出整个标签再取 height。
-    const sbTag = /<div\b[^>]*\sid="status-bar"[^>]*>/.exec(shell);
-    const sb = sbTag ? /height:(\d+)px/.exec(sbTag[0]) : null;
-    if (!sb || Number(sb[1]) !== deviceInfo.statusBarHeight) {
-      layoutFail++; log.verify.error(`状态栏带高 ${sb ? sb[1] : '缺失'} ≠ 报告 ${deviceInfo.statusBarHeight}`);
+    // 竖排系统栏（iPhone Duo 外屏）走另一套几何：外壳画栏顶 chrome，页面画栏内 TabBar。
+    const sysBar = deviceInfo.systemBar;
+    if (sysBar && sysBar.orientation === 'vertical') {
+      await verifyVerticalSystemBar(sysBar, shell, attr);
+    } else {
+      if (sysBar === undefined) log.verify.warn('generation-report.json 缺 device.systemBar（旧产物），按横排校验');
+      const sbTag = /<div\b[^>]*\sid="status-bar"[^>]*>/.exec(shell);
+      const sb = sbTag ? /height:(\d+)px/.exec(sbTag[0]) : null;
+      if (!sb || Number(sb[1]) !== deviceInfo.statusBarHeight) {
+        layoutFail++; log.verify.error(`状态栏带高 ${sb ? sb[1] : '缺失'} ≠ 报告 ${deviceInfo.statusBarHeight}`);
+      }
     }
     const creaseDivs = (shell.match(/class="crease-line"/g) || []).length;
     const expectCrease = deviceInfo.crease ? deviceInfo.crease.positions.length : 0;
@@ -152,6 +208,16 @@ if (frameList.length) {
     // 与主帧同口径：缺字段（旧产物）放行，给了就必须合法（null = 无姿态）
     if (fr.posture !== undefined && fr.posture !== null && !['flat', 'half', 'closed'].includes(fr.posture)) {
       layoutFail++; log.verify.error(`${rel} 报告 posture=${fr.posture} 不在三档枚举内`);
+    }
+    // 帧的系统栏几何必须与主帧一致（生成期已拒绝混帧）：横排帧彼此无关（各帧外壳自带 device），
+// 竖排才比厚度/栏高/底避让——页面侧 --rail-w、TabBar top 与 padding-bottom 只认主帧，几何不同必然错位。
+    if (fr.systemBar && deviceInfo.systemBar) {
+      const sig = (b) => (b.orientation === 'vertical'
+        ? `vertical/${b.thickness}/${b.chromeHeight}/${b.bottomInset}`
+        : 'horizontal');
+      if (sig(fr.systemBar) !== sig(deviceInfo.systemBar)) {
+        layoutFail++; log.verify.error(`${rel} 帧 systemBar=${sig(fr.systemBar)} 与主帧 ${sig(deviceInfo.systemBar)} 不一致`);
+      }
     }
   }
   const gallery = await readFileSafe(resolve(outDir, 'gallery.html')).catch(() => null);

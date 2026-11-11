@@ -20,7 +20,7 @@ import { buildCopyPack, badgeToneClass } from '../utils/copy-domain.js';
 import { resolveDevice } from '../utils/device-profile.js';
 import { detectCapabilities, capabilityWarnings } from '../utils/preflight.js';
 import { getTheme, listThemes } from '../themes/index.js';
-import { DEVICES, ASPECT_CLASSES, SHELL_STAGE_PAD } from '../constants.js';
+import { DEVICES, ASPECT_CLASSES, SHELL_STAGE_PAD, TABBAR_HIDDEN } from '../constants.js';
 
 const SKILL_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -158,6 +158,26 @@ const frameDevices = frames.map((f) => {
   } catch (e) { console.error(e.message); process.exit(1); }
   return { ...f, device: d };
 });
+
+// 竖排系统栏只支持「物理右缘」：左缘达标（横持 landscapeLeft 的镜像）降级为横排，不画半套。
+if (device?.systemBar?.degradedLeftRail) {
+  log.prototype.warn('左侧系统栏暂未实现（本轮仅右侧）：已按横排渲染，勿据此判读竖排观感');
+}
+// 页面侧几何只跟主帧 device（pages/*.html 是一套共享产物）⇒ 混帧无法同时正确，直接拒绝：
+// 否则会产出「chrome 压住未避让的内容」或「横排帧里悬着一条竖排 TabBar」的假预览。
+// 比较键：横排帧各画各的状态栏带（每帧外壳自带 device），彼此无影响，故只比形态；
+// 竖排才把厚度/栏高/底避让算进键里——页面侧的 --rail-w、TabBar 的 top 与 padding-bottom
+// 都只认主帧，几何不同必然错位。
+const barSig = (b) => (b.orientation === 'vertical'
+  ? `vertical/${b.thickness}/${b.chromeHeight}/${b.bottomInset}`
+  : 'horizontal');
+for (const f of frameDevices) {
+  if (device && f.device && barSig(f.device.systemBar) !== barSig(device.systemBar)) {
+    console.error(`--frame-set 第 ${f.key} 帧的系统栏几何（${barSig(f.device.systemBar)}）与主帧（${barSig(device.systemBar)}）不同：`
+      + '页面产物只有一套，混帧会画出错误预览。请拆成两次生成（例如先竖排、再横排）。');
+    process.exit(1);
+  }
+}
 
 // 帧文件名白名单：只认 `device-<DEVICES 键>.html`，避免清理时误删用户手放进 prototype/ 的同类名文件。
 const DEVICE_FRAME_RE = new RegExp(`^device-(${Object.keys(DEVICES).map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\.html$`);
@@ -367,12 +387,17 @@ async function buildOnce() {
   // 首屏回退优先取带 TabBar 的主导航页，避免落在 chat/detail 等无导航页
   const homeFallback = ['home', 'discover', 'list', 'profile', 'orders', 'publish'].find((n) => pageSet.has(n)) || pages[0];
   const homeHref = homeFallback ? `pages/${homeFallback}.html` : '#';
+  // 竖排系统栏（iPhone Duo 外屏等）：页面侧只消费 thickness/chromeHeight/bottomInset，
+  // 与外壳读同一个 `device.systemBar`，不在这里另做几何派生。
+  const railBar = device?.systemBar?.orientation === 'vertical' ? device.systemBar : null;
   // 本地资源前缀（按当前页所在目录深度）：pages/ 下回退一级，根目录不加前缀
   const assetBase = (p) => (dirOf(p) === '.' ? '' : '../');
   const shapeImg = (p) => (src) => (/^(?:https?:|data:|\/\/)/i.test(src) ? src : assetBase(p) + src);
 
   // 底部 TabBar（抽取自各页重复的内联实现）——仅渲染当前页集中存在的项；全屏页不注入
-  const TABBAR_HIDDEN = new Set(['chat', 'detail', 'list-detail', 'publish', 'login', 'register']);
+  // TABBAR_HIDDEN 从 constants.js 导入（校验侧同源，勿在此重抄名单）
+  // 竖排系统栏（iPhone Duo 外屏）：TabBar 挪进侧栏，但仍由**页面**渲染 ——
+  // 全屏页隐藏与 aria-current 是页面级语义，外壳跨文档读不到 iframe 当前页（file:// 属不透明源）。
   const TAB_ITEMS = (Array.isArray(copyPack.tabbar) ? copyPack.tabbar : []).map((t) => [t.target, t.icon, t.label]);
   const buildTabbar = (p) => {
     if (!isMobile || TABBAR_HIDDEN.has(p)) return '';
@@ -380,7 +405,13 @@ async function buildOnce() {
       const on = p === name;
       return `<a href="${linkFor(p)(name)}"${on ? ' aria-current="page"' : ''} class="flex flex-col items-center gap-1 text-xs font-medium ${on ? 'text-brand-600' : 'text-neutral-500'} active:scale-95 transition"><i data-lucide="${icon}" class="text-xl"></i>${escapeHtml(label)}</a>`;
     }).join('');
-    return items ? `<nav class="fixed bottom-4 inset-x-page z-20 bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl rounded-3xl px-page py-3 flex justify-between" aria-label="底部导航">${items}</nav>` : '';
+    if (!items) return '';
+    if (railBar) {
+      // 竖排：无 px-*/inset-x-*（consistency 的 tabbar 槽位只认横向内距，竖排不参与漂移统计），
+      // 材质与外壳栏顶 chrome 同款；y 从 chromeHeight 起，内容让出 home indicator 区。
+      return `<nav aria-label="底部导航" data-rail-tabbar="1" class="fixed right-0 z-20 flex flex-col items-center justify-evenly bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl" style="top:${railBar.chromeHeight}px;bottom:0;width:${railBar.thickness}px;padding-bottom:${railBar.bottomInset}px">${items}</nav>`;
+    }
+    return `<nav class="fixed bottom-4 inset-x-page z-20 bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl rounded-3xl px-page py-3 flex justify-between" aria-label="底部导航">${items}</nav>`;
   };
 
   const baseCtx = (p, extra = {}, dev = device) => ({ meta, platform, page: p, title: copyNav(p), head, nav, scheme, signature, brandMark, esc: escapeHtml, link: linkFor(p), copy: copyPack, badgeTone: badgeToneClass, tone: badgeToneClass, device: dev, ...extra });
@@ -487,7 +518,7 @@ ${cards}
     capabilities = await detectCapabilities({ workspace: WORKSPACE });
     for (const w of capabilityWarnings(capabilities)) log.prototype.warn(w);
   }
-  const report = { success: failed.length === 0, platform, pages, skippedPages, truncatedPages, unknownPages, productType: meta.productType || 'other', theme: theme ? theme.key : null, prdSource: prdAssumptions.prdSource, assumptions: prdAssumptions.assumptions, prdWarnings: v.warnings, copySource: copy.copySource, copyType: copy.copyType, allowTerms: copy.allowTerms, capabilities, device: device ? { key: device.key, label: device.label, category: device.category, logicalWidth: device.logicalWidth, logicalHeight: device.logicalHeight, frameWidth: device.frameWidth, frameHeight: device.frameHeight, aspectClass: device.aspectClass, sizeClass: device.sizeClass, panes: device.panes, verticalSpace: device.verticalSpace, statusBarHeight: device.statusBarHeight, crease: device.crease, posture: postureArg || null } : null, frames: frameDevices.map((f) => ({ key: f.key, label: f.device.label, sizeClass: f.device.sizeClass, aspectClass: f.device.aspectClass, panes: f.device.panes, frameWidth: f.device.frameWidth, frameHeight: f.device.frameHeight, posture: f.posture, note: '形态容器，非布局结论' })), files: files.length, totalSize, imgCount, duration, warnings: failed.map((f) => String(f.reason?.message)), at: new Date().toISOString() };
+  const report = { success: failed.length === 0, platform, pages, skippedPages, truncatedPages, unknownPages, productType: meta.productType || 'other', theme: theme ? theme.key : null, prdSource: prdAssumptions.prdSource, assumptions: prdAssumptions.assumptions, prdWarnings: v.warnings, copySource: copy.copySource, copyType: copy.copyType, allowTerms: copy.allowTerms, capabilities, homeHref, device: device ? { key: device.key, label: device.label, category: device.category, logicalWidth: device.logicalWidth, logicalHeight: device.logicalHeight, frameWidth: device.frameWidth, frameHeight: device.frameHeight, aspectClass: device.aspectClass, sizeClass: device.sizeClass, panes: device.panes, verticalSpace: device.verticalSpace, statusBarHeight: device.statusBarHeight, systemBar: device.systemBar, crease: device.crease, posture: postureArg || null } : null, frames: frameDevices.map((f) => ({ key: f.key, label: f.device.label, sizeClass: f.device.sizeClass, aspectClass: f.device.aspectClass, panes: f.device.panes, frameWidth: f.device.frameWidth, frameHeight: f.device.frameHeight, posture: f.posture, systemBar: f.device.systemBar, note: '形态容器，非布局结论' })), files: files.length, totalSize, imgCount, duration, warnings: failed.map((f) => String(f.reason?.message)), at: new Date().toISOString() };
   await writeFileAtomic(resolve(outDir, 'generation-report.json'), JSON.stringify(report, null, 2));
   succeedProgress(`原型生成完成：${outDir}（${files.length} 个页面，${(totalSize/1024).toFixed(1)} KB，${imgCount} 张图，${duration}ms）`);
   console.log(`\n预览：直接用浏览器打开 ${resolve(outDir, 'index.html')}\nPRD：${prdPath}\n`);
