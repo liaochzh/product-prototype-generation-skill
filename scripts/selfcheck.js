@@ -23,7 +23,7 @@ import { compareDirs, DEFAULT_DIMS, normalizeText, normalizeAttrs, SPU_PATTERN }
 import { gateClasses, gateRawClasses, structuralDiff, countArbitrarySizes, TOKEN_SIZE_RE, arbScanRe } from '../utils/golden-gate.js';
 import { decideFreeze, classifyFileSet } from './freeze-golden.js';
 import { PRODUCT_TYPES, DEVICES, ASPECT_CLASSES, SIZE_CLASSES, SHELL_STAGE_PAD, deviceFrame, resolveSizeClass, TYPE_ROLES, fontSize, fontFamily, fontStacks } from '../constants.js';
-import { resolveDevice, parseCrease } from '../utils/device-profile.js';
+import { resolveDevice, parseCrease, resolveSystemBar } from '../utils/device-profile.js';
 import { parsePRD, validatePRD, getPagePriority, parseDoc, INTER_10, extractUnknownPageNames, KNOWN_PAGES } from '../utils/prd-parser.js';
 import { buildPRDFromTemplate } from '../utils/prompt-engine.js';
 import { GOLDEN_FIXTURES, ALL_PLATFORMS, prdPathOf, goldenDirOf, BAK_ROOT } from '../utils/golden-fixtures.js';
@@ -902,6 +902,24 @@ ${['home', 'discover', 'list', 'detail', 'publish', 'chat', 'orders', 'profile',
   check('Duo 外屏：竖排基线 layoutFail===0 且 passed', v.layoutFail === 0 && v.passed === true,
     JSON.stringify({ lf: v.layoutFail, passed: v.passed }));
 
+  // 函数级：左缘达标（横持 landscapeLeft 的镜像形态）必须降级横排 + degradedLeftRail，
+  // 不许画「chrome 在左、避让在右」的半套 —— 当前设备表里没有左栏数据，靠这条锁住分支语义。
+  const islandShape = { type: 'dynamicIsland', width: 126, height: 37, radius: 20 };
+  const chrome = { height: 174, islandTop: 29, islandSize: 37 };
+  const leftBar = resolveSystemBar({
+    safeInsets: { portrait: { top: 0, right: 0, bottom: 34, left: 84 } },
+    systemChrome: chrome, statusBarHeight: 54, cutout: islandShape,
+  });
+  check('左缘系统栏 → 降级横排（degradedLeftRail=true，无竖排岛）',
+    leftBar.orientation === 'horizontal' && leftBar.degradedLeftRail === true && leftBar.island === null,
+    JSON.stringify(leftBar));
+  // 函数级：竖排缺 systemChrome（实测几何未补）必须 fail-fast，不许回退横排带高当栏高
+  let threw = false;
+  try {
+    resolveSystemBar({ safeInsets: { portrait: { top: 0, right: 84, bottom: 34, left: 0 } }, statusBarHeight: 54, cutout: islandShape });
+  } catch { threw = true; }
+  check('竖排缺 systemChrome → fail-fast（不猜几何）', threw === true);
+
   const shellP = join(ws, 'prototype', 'index.html');
   const homeP = join(ws, 'prototype', 'pages', 'home.html');
   const shell0 = read(shellP), home0 = read(homeP);
@@ -912,7 +930,8 @@ ${['home', 'discover', 'list', 'detail', 'publish', 'chat', 'orders', 'profile',
     'rail/status ids');
   check('Duo 外屏：首屏页避开系统栏且 TabBar 竖排',
     /data-rail="right"/.test(home0) && home0.includes('padding-right:var(--rail-w)')
-      && home0.includes('data-rail-tabbar="1"') && home0.includes('aria-current="page"'),
+      && home0.includes('data-rail-tabbar="1"') && home0.includes('aria-current="page"')
+      && home0.includes('aria-label="侧边导航"') && !home0.includes('aria-label="底部导航"'),
     'page rail attrs');
   check('Duo 外屏：全屏页不出竖排 TabBar',
     ['chat', 'detail', 'list-detail', 'publish'].every((p) => !read(join(ws, 'prototype', 'pages', `${p}.html`)).includes('data-rail-tabbar')));
@@ -2681,6 +2700,31 @@ ${body}
     rmSync(d, { recursive: true, force: true });
   }
   check('desktop 产物零 tbl/尺寸类痕迹且与 golden 原文逐字节一致', dirty.length === 0, dirty.slice(0, 5).join('；'));
+
+  // (b2) 移动端同款原文锁：默认设备（iphone16）产物必须与 golden 逐字节一致（SPU 归一后）+ 文件集相同。
+  // WHY：默认设备「产物逐字节不变」是硬承诺，而三维闸门会抹掉换行/空白/`<script>` 段（见场景头注）；
+  // 竖排系统栏那类模板改动正是靠 `<%~ '\n' %>` 补偿换行的，必须由机器守，不能靠人工 sha256。
+  const mdirty = [];
+  for (const fx of GOLDEN_FIXTURES.filter((f) => f.platforms.includes('mobile'))) {
+    const d = newWs(read(prdPathOf(fx)));
+    const r = run(GEN, d, ['--platform', 'mobile', '--quiet']);
+    if (r.status !== 0) { mdirty.push(`${fx.name}: 生成 exit=${r.status}`); rmSync(d, { recursive: true, force: true }); continue; }
+    const gdir = join(goldenDirOf(fx), 'mobile');
+    const walk = (dir, pre = '') => readdirSync(dir, { withFileTypes: true })
+      .flatMap((e) => (e.isDirectory() ? walk(join(dir, e.name), `${pre}${e.name}/`) : [`${pre}${e.name}`]));
+    const wantSet = walk(gdir).filter((f) => f.endsWith('.html')).sort();
+    const gotSet = walk(join(d, 'prototype')).filter((f) => f.endsWith('.html')).sort();
+    if (JSON.stringify(wantSet) !== JSON.stringify(gotSet)) {
+      mdirty.push(`${fx.name}: 文件集不同（多 ${gotSet.filter((f) => !wantSet.includes(f)).join(',') || '无'} / 少 ${wantSet.filter((f) => !gotSet.includes(f)).join(',') || '无'}）`);
+    }
+    for (const rel of wantSet.filter((f) => gotSet.includes(f))) {
+      const want = read(join(gdir, rel));
+      const got = read(join(d, 'prototype', rel));
+      if (normSpu(got) !== normSpu(want)) mdirty.push(`${fx.name}/${rel}: 原文不一致`);
+    }
+    rmSync(d, { recursive: true, force: true });
+  }
+  check('mobile 产物与 golden 原文逐字节一致（SPU 归一后，含文件集）', mdirty.length === 0, mdirty.slice(0, 5).join('；'));
 
   // 负例：证明上面两条不是恒真 —— 注入即必须被识别
   const sample = '<html><head><script>tailwind.config = {theme:{extend:{"screens": {"sm": "640px"}}}}</script></head><body>x</body></html>';

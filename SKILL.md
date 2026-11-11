@@ -79,7 +79,7 @@ GenUI确认模板（必须原样）：
 - **折叠姿态**：`--posture flat|half|closed`（**仅折叠设备**；与 `--crease` 互斥）。这是**外壳预览参数**——折算成折痕覆盖，不改模板；不得表述为「运行时判定姿态」，页面层也不得自绘折痕避让（系统已内建半折推离行为）。
 - **多帧预览**：`--frame-set k1,k2[,k3[,k4]]`，每帧产出根级 `device-<key>.html` + `gallery.html`（iframe 按 `frameWidth/Height + 48` 给足，少给会裁帧）；缺省**一个文件都不追加**（golden 文件集不变），且会清掉上一轮的陈旧帧。帧语法 `key[:posture]`，同设备多姿态按 key 去重（要对比请分两次生成）。
 - **平板是形态容器**：演示外壳几何与可用空间，**不代表页面已按断点重排**（页面级响应式属二期）。
-- **竖排系统栏（iPhone Duo 外屏）**：`device.systemBar` 是唯一派生点（`safeInsets` + `systemChrome`），外壳与页面共用。外壳只画栏顶系统 chrome（`#system-rail`：竖排状态簇 + 竖排灵动岛）；**TabBar 仍由页面渲染**（`data-rail-tabbar`，保 `TABBAR_HIDDEN` 与 `aria-current`；外壳跨文档读不到 iframe 当前页）。页面靠 `body{padding-right:var(--rail-w)}` 右沿避让。本轮只支持 `edge='right'`（左栏降级横排 + warn），主帧与帧集系统栏形态不一致直接 exit 1——**混帧必然画出假预览**。
+- **竖排系统栏（iPhone Duo 外屏）**：`device.systemBar` 是唯一派生点（`safeInsets` + `systemChrome`），外壳与页面共用。外壳只画栏顶系统 chrome（`#system-rail`：竖排状态簇 + 竖排灵动岛，时间为静态 9:41 且不挂时钟脚本——`aria-hidden` 装饰层，样机口径）；**TabBar 仍由页面渲染**（`data-rail-tabbar` + `aria-label="侧边导航"`，保 `TABBAR_HIDDEN` 与 `aria-current`；横排标签仍是「底部导航」，是槽位锚；外壳跨文档读不到 iframe 当前页）。页面靠 `body{padding-right:var(--rail-w)}` 右沿避让。本轮只支持 `edge='right'`（左栏降级横排 + warn，有函数级锁），主帧与帧集系统栏几何不一致直接 exit 1——**混帧必然画出假预览**。
 - 派生属性、折痕/姿态语法、尺寸类映射、数据来源等级标注、外壳几何契约（`layoutFail`/`creaseFail` 计入 `passed`）与竖排系统栏的产物契约、17 款机型清单 → **`references/devices.md`**。
 - 尺寸类 → 范式 → 原型呈现、多形态判据、经验档与多形态验收清单 → **`references/adaptive-layout.md`**。
 

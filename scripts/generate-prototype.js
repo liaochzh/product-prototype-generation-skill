@@ -409,7 +409,10 @@ async function buildOnce() {
     if (railBar) {
       // 竖排：无 px-*/inset-x-*（consistency 的 tabbar 槽位只认横向内距，竖排不参与漂移统计），
       // 材质与外壳栏顶 chrome 同款；y 从 chromeHeight 起，内容让出 home indicator 区。
-      return `<nav aria-label="底部导航" data-rail-tabbar="1" class="fixed right-0 z-20 flex flex-col items-center justify-evenly bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl" style="top:${railBar.chromeHeight}px;bottom:0;width:${railBar.thickness}px;padding-bottom:${railBar.bottomInset}px">${items}</nav>`;
+      // aria-label 用「侧边导航」而非「底部导航」：栏在持握侧，播报方位须与实际一致；
+      // 横排的「底部导航」是词典槽位锚（consistency / verify-layout / snapshot-typography 均按它定位），
+      // 故两套标签各自稳定，勿互相替换。
+      return `<nav aria-label="侧边导航" data-rail-tabbar="1" class="fixed right-0 z-20 flex flex-col items-center justify-evenly bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl" style="top:${railBar.chromeHeight}px;bottom:0;width:${railBar.thickness}px;padding-bottom:${railBar.bottomInset}px">${items}</nav>`;
     }
     return `<nav class="fixed bottom-4 inset-x-page z-20 bg-white/85 backdrop-blur-xl ring-1 ring-white/60 shadow-xl rounded-3xl px-page py-3 flex justify-between" aria-label="底部导航">${items}</nav>`;
   };
