@@ -1,0 +1,169 @@
+{
+  "generatedAt": "2026-10-27T11:08:25.916Z",
+  "protoDir": "/private/var/folders/0c/m0pjl0gn7tb3kd9hxrgzyx0h0000gn/T/opencode/measure-ws-d/prototype",
+  "pages": [
+    {
+      "file": "index.html",
+      "header": {
+        "left": 32,
+        "right": 32
+      },
+      "main": {
+        "left": 32,
+        "right": 32
+      },
+      "tabbar": null,
+      "gutterDelta": 0,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/chat.html",
+      "header": {
+        "left": 32,
+        "right": 32
+      },
+      "main": {
+        "left": 32,
+        "right": 32
+      },
+      "tabbar": null,
+      "gutterDelta": 0,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/detail.html",
+      "header": {
+        "left": 32,
+        "right": 32
+      },
+      "main": {
+        "left": 32,
+        "right": 32
+      },
+      "tabbar": null,
+      "gutterDelta": 0,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/discover.html",
+      "header": {
+        "left": 32,
+        "right": 32
+      },
+      "main": {
+        "left": 32,
+        "right": 32
+      },
+      "tabbar": null,
+      "gutterDelta": 0,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/list.html",
+      "header": {
+        "left": 32,
+        "right": 32
+      },
+      "main": {
+        "left": 32,
+        "right": 32
+      },
+      "tabbar": null,
+      "gutterDelta": 0,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/orders.html",
+      "header": {
+        "left": 32,
+        "right": 32
+      },
+      "main": {
+        "left": 32,
+        "right": 32
+      },
+      "tabbar": null,
+      "gutterDelta": 0,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/profile.html",
+      "header": {
+        "left": 32,
+        "right": 32
+      },
+      "main": {
+        "left": 32,
+        "right": 32
+      },
+      "tabbar": null,
+      "gutterDelta": 0,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/publish.html",
+      "header": {
+        "left": 32,
+        "right": 32
+      },
+      "main": {
+        "left": 32,
+        "right": 32
+      },
+      "tabbar": null,
+      "gutterDelta": 0,
+      "shellOnly": false
+    }
+  ],
+  "summary": {
+    "files": 8,
+    "shellOnly": 0,
+    "gutterDelta": {
+      "max": 0,
+      "values": [
+        0
+      ]
+    },
+    "slotDrift": {
+      "headerLeft": [
+        32
+      ],
+      "headerRight": [
+        32
+      ],
+      "mainLeft": [
+        32
+      ],
+      "mainRight": [
+        32
+      ],
+      "tabbarLeft": [],
+      "tabbarRight": []
+    },
+    "controlKinds": {
+      "button": [
+        "h-10",
+        "h-8",
+        "h-9",
+        "py-2",
+        "py-2.5",
+        "py-3"
+      ],
+      "input": [],
+      "other": [
+        "h-10",
+        "h-8",
+        "h-9"
+      ]
+    },
+    "negMargin": {
+      "mismatch": [],
+      "orphan": []
+    },
+    "transitionPages": 0,
+    "unknownClasses": [],
+    "arbitraryValues": [
+      "h-[70vh]"
+    ]
+  }
+}
