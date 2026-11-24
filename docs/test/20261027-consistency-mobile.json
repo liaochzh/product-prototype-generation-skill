@@ -1,0 +1,195 @@
+{
+  "generatedAt": "2026-10-27T11:08:24.443Z",
+  "protoDir": "/private/var/folders/0c/m0pjl0gn7tb3kd9hxrgzyx0h0000gn/T/opencode/measure-ws/prototype",
+  "pages": [
+    {
+      "file": "index.html",
+      "header": null,
+      "main": {
+        "left": null,
+        "right": null
+      },
+      "tabbar": null,
+      "gutterDelta": null,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/chat.html",
+      "header": {
+        "left": 20,
+        "right": 20
+      },
+      "main": {
+        "left": 16,
+        "right": 16
+      },
+      "tabbar": null,
+      "gutterDelta": -4,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/detail.html",
+      "header": {
+        "left": 20,
+        "right": 20
+      },
+      "main": {
+        "left": 16,
+        "right": 16
+      },
+      "tabbar": null,
+      "gutterDelta": -4,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/discover.html",
+      "header": {
+        "left": 20,
+        "right": 20
+      },
+      "main": {
+        "left": 16,
+        "right": 16
+      },
+      "tabbar": {
+        "left": 24,
+        "right": 24
+      },
+      "gutterDelta": -4,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/home.html",
+      "header": {
+        "left": 20,
+        "right": 20
+      },
+      "main": {
+        "left": 16,
+        "right": 16
+      },
+      "tabbar": {
+        "left": 24,
+        "right": 24
+      },
+      "gutterDelta": -4,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/list.html",
+      "header": {
+        "left": 20,
+        "right": 20
+      },
+      "main": {
+        "left": 16,
+        "right": 16
+      },
+      "tabbar": {
+        "left": 24,
+        "right": 24
+      },
+      "gutterDelta": -4,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/orders.html",
+      "header": {
+        "left": 20,
+        "right": 20
+      },
+      "main": {
+        "left": 16,
+        "right": 16
+      },
+      "tabbar": {
+        "left": 24,
+        "right": 24
+      },
+      "gutterDelta": -4,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/profile.html",
+      "header": {
+        "left": 20,
+        "right": 20
+      },
+      "main": {
+        "left": 16,
+        "right": 16
+      },
+      "tabbar": {
+        "left": 24,
+        "right": 24
+      },
+      "gutterDelta": -4,
+      "shellOnly": false
+    },
+    {
+      "file": "pages/publish.html",
+      "header": {
+        "left": 20,
+        "right": 20
+      },
+      "main": {
+        "left": 16,
+        "right": 16
+      },
+      "tabbar": null,
+      "gutterDelta": -4,
+      "shellOnly": false
+    }
+  ],
+  "summary": {
+    "files": 9,
+    "shellOnly": 0,
+    "gutterDelta": {
+      "max": 4,
+      "values": [
+        -4
+      ]
+    },
+    "slotDrift": {
+      "headerLeft": [
+        20
+      ],
+      "headerRight": [
+        20
+      ],
+      "mainLeft": [
+        16
+      ],
+      "mainRight": [
+        16
+      ],
+      "tabbarLeft": [
+        24
+      ],
+      "tabbarRight": [
+        24
+      ]
+    },
+    "controlKinds": {
+      "button": [
+        "h-10",
+        "py-1.5",
+        "py-2",
+        "py-3",
+        "py-3.5"
+      ],
+      "input": [],
+      "other": [
+        "h-11",
+        "h-9"
+      ]
+    },
+    "negMargin": {
+      "mismatch": [],
+      "orphan": []
+    },
+    "transitionPages": 0,
+    "unknownClasses": [],
+    "arbitraryValues": []
+  }
+}
