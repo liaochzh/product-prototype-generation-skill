@@ -1,0 +1,71 @@
+{
+  "at": "2026-10-27T10:44:49.084Z",
+  "skill": "product-prototype-generation",
+  "results": [
+    {
+      "id": 1,
+      "name": "ecommerce-mobile-全页集",
+      "fixture": "ecommerce",
+      "platform": "mobile",
+      "passed": true,
+      "asserts": [
+        {
+          "name": "生成成功（generate-prototype 退出码 0）",
+          "pass": true,
+          "detail": ""
+        },
+        {
+          "name": "产物报告存在且 success=true",
+          "pass": true,
+          "detail": "success=true"
+        },
+        {
+          "name": "页集落盘完整（report.pages 均有对应 HTML）",
+          "pass": true,
+          "detail": "8 页"
+        },
+        {
+          "name": "verify-prototype 通过（死链/文案域/设备几何/内联配置）",
+          "pass": true,
+          "detail": ""
+        },
+        {
+          "name": "产物无任意字号 text-[Npx]",
+          "pass": true,
+          "detail": ""
+        },
+        {
+          "name": "产物无任意圆角 rounded-[Npx]",
+          "pass": true,
+          "detail": ""
+        },
+        {
+          "name": "无占位图服务（via.placeholder/placehold）",
+          "pass": true,
+          "detail": ""
+        },
+        {
+          "name": "所有 <img> 均有 alt",
+          "pass": true,
+          "detail": ""
+        }
+      ],
+      "metrics": {
+        "pageCount": 8,
+        "totalSize": 318938,
+        "imgCount": 35,
+        "genMs": 206,
+        "duration": 26
+      }
+    }
+  ],
+  "summary": {
+    "evals": 1,
+    "evalsPassed": 1,
+    "asserts": 8,
+    "assertsPassed": 8,
+    "passRate": 1,
+    "totalSizeKB": 311.5,
+    "genMsAvg": 206
+  }
+}
