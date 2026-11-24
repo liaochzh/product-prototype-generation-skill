@@ -1828,8 +1828,8 @@ if (process.argv.includes('--browser')) {
 // ---- 场景 37：文档-代码一致性（SKILL.md 点名的东西必须真实存在）----
 // 背景：`interfaces.js` 自陈「仅文档作用、无运行时导出」，故 SKILL.md 曾点名 LLMClient/ImageProvider
 // 而两者从未实现（G6）；场景 36 落地后正文也未同步。纯字符串扫描、零依赖。
-// 注意：只扫「有确定契约的两类」——`interfaces.js`（…）括号内的接口名、`场景 NN` 号；
-// 不扫自由散文（那会逼着文档写死措辞，反而制造新的漂移）。
+// 注意：只扫「有确定契约的三类」——`interfaces.js`（…）括号内的接口名、`场景 NN` 号、
+// 机型计数（`DEVICES` 键数）；不扫自由散文（那会逼着文档写死措辞，反而制造新的漂移）。
 {
   const skillMd = readFileSync(join(SKILL_DIR, 'SKILL.md'), 'utf8');
   const ifaceSrc = readFileSync(join(SKILL_DIR, 'interfaces.js'), 'utf8');
@@ -1891,6 +1891,54 @@ if (process.argv.includes('--browser')) {
         && !!declaredOnly && Number(declaredOnly[1]) === actualOnly.length
         && listedOnly.length === actualOnly.length && actualOnly.every((p) => listedOnly.includes(p)),
       `声明桌面=${declaredDesktopCount ? declaredDesktopCount[1] : '未声明'} 专属=${declaredOnly ? declaredOnly[2] : '未声明'}；实际桌面=${desktopTpl.size} 专属=${actualOnly.join('/')}`,
+    );
+  }
+
+  // 机型计数：SKILL.md / references/devices.md 声明的「N 款机型」必须等于 DEVICES 实际键数。
+  // WHY：13→14→17 三次扩容全靠人工同步（其中一次已在本仓漂移过），数字本身没有任何门禁；
+  // 分项（直板 / 折叠 / 平板）同理——总数对上但分组写错，选型时照样误导。
+  {
+    const keys = Object.keys(DEVICES);
+    const GROUP = { bar: '直板', tablet: '平板' };
+    const groupOf = (c) => GROUP[c] ?? '折叠';          // 其余折叠形态（cover/inner/flip/tri-fold/wide-fold）
+    const actual = { 直板: 0, 折叠: 0, 平板: 0 };
+    for (const d of Object.values(DEVICES)) actual[groupOf(d.category)] += 1;
+
+    const declared = skillMd.match(/`DEVICES`（(\d+)\s*款机型：直板\s*(\d+)\s*\/\s*折叠\s*(\d+)\s*\/\s*平板\s*(\d+)）/);
+    const n = (i) => (declared ? Number(declared[i]) : null);
+    check(
+      '文档一致性：SKILL.md 声明的 DEVICES 机型数（总+分项）== constants.js 实际',
+      !!declared && n(1) === keys.length
+        && n(2) === actual.直板 && n(3) === actual.折叠 && n(4) === actual.平板,
+      declared
+        ? `声明=${n(1)}（直板${n(2)}/折叠${n(3)}/平板${n(4)}）；实际=${keys.length}（直板${actual.直板}/折叠${actual.折叠}/平板${actual.平板}）`
+        : '未匹配到「`DEVICES`（N 款机型：直板 A / 折叠 B / 平板 C）」声明',
+    );
+
+    const devicesMd = readFileSync(join(SKILL_DIR, 'references', 'devices.md'), 'utf8');
+    const declTitle = devicesMd.match(/^# 多设备适配（(\d+)\s*机型/m);
+    const declInner = devicesMd.match(/### 内置 (\d+) 款/);
+    const declGroups = ['直板', '折叠', '平板'].map((g) => {
+      const m = devicesMd.match(new RegExp(`\\*\\*${g}（(\\d+)）\\*\\*`));
+      return m ? Number(m[1]) : null;
+    });
+    check(
+      '文档一致性：references/devices.md 的机型总数（标题+内置）与分项 == 实际',
+      !!declTitle && Number(declTitle[1]) === keys.length
+        && !!declInner && Number(declInner[1]) === keys.length
+        && declGroups[0] === actual.直板 && declGroups[1] === actual.折叠 && declGroups[2] === actual.平板,
+      `标题=${declTitle ? declTitle[1] : '未声明'} 内置=${declInner ? declInner[1] : '未声明'} `
+        + `分项=${declGroups.join('/')}；实际=${keys.length}（直板${actual.直板}/折叠${actual.折叠}/平板${actual.平板}）`,
+    );
+
+    // 清单完备性：每个键都必须在「### 内置」小节里出现（写完清单却漏掉新键是最常见的漂移形态）。
+    const secStart = devicesMd.indexOf('### 内置');
+    const secBody = secStart < 0 ? '' : devicesMd.slice(secStart + 4).split(/^#/m)[0];
+    const unlisted = keys.filter((k) => !secBody.includes(`\`${k}\``));
+    check(
+      '文档一致性：DEVICES 每个键都在 references/devices.md「内置」清单里列出',
+      secStart >= 0 && unlisted.length === 0,
+      `未列出=${unlisted.join(',') || '无'}`,
     );
   }
 }
